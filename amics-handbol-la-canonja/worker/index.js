@@ -7,6 +7,7 @@ const CLUB_ID = "100639";
 const SEASON_ID = "2627";
 const CACHE_TTL_SECONDS = 300;
 const SOURCE_ORIGIN = "https://resultadosbalonmano.isquad.es";
+const ACTA_ORIGIN = "https://balonmano.isquad.es";
 const BADGE_URL = "https://balonmano.isquad.es/images/afiliacion_clubs/100639/square_73326d626f6b37737763.jpg";
 const INSTAGRAM_EMBED_URL = "https://www.instagram.com/amicshandbolcanonja/embed/";
 const INSTAGRAM_CACHE_TTL_SECONDS = 900;
@@ -202,6 +203,7 @@ function fixtureFromRow(row, team, scoreClass, dateClass, venueClass, badgeUrls 
   const state = /suspend|ajorn|aplaz|cancel|anul/.test(stateText)
     ? "suspended"
     : score || /finaliz|terminad|played/.test(stateText) ? "played" : "pending";
+  const actaMatchId = row.match(/mostrarActaFormal\((\d+)\)/i)?.[1] ?? "";
   return {
     homeId: sides[0].id,
     homeName: sides[0].name,
@@ -215,6 +217,9 @@ function fixtureFromRow(row, team, scoreClass, dateClass, venueClass, badgeUrls 
     time,
     venue,
     state,
+    actaUrl: state === "played" && score && actaMatchId
+      ? `/api/acta?id=${actaMatchId}`
+      : "",
   };
 }
 
@@ -435,6 +440,24 @@ async function getInstagramPosts() {
   return cachedInstagramPosts;
 }
 
+async function fetchActaPdf(matchId) {
+  const response = await fetch(`${ACTA_ORIGIN}/acta_completa_pdf.php?id_partido=${matchId}`, {
+    headers: { accept: "application/pdf" },
+    signal: AbortSignal.timeout(20000),
+  });
+  if (!response.ok || !/application\/pdf/i.test(response.headers.get("content-type") ?? "")) {
+    throw new Error(`Federation acta returned ${response.status}`);
+  }
+  return new Response(response.body, {
+    headers: {
+      "content-type": "application/pdf",
+      "content-disposition": `attachment; filename="acta-${matchId}.pdf"`,
+      "cache-control": "private, no-store",
+      "x-content-type-options": "nosniff",
+    },
+  });
+}
+
 export default {
   async fetch(request, env, ctx) {
     void env;
@@ -458,6 +481,20 @@ export default {
       } catch (error) {
         console.error("Instagram sync failed", error instanceof Error ? error.message : error);
         return jsonResponse({ permalink: "" }, 502);
+      }
+    }
+
+    if (url.pathname === "/api/acta") {
+      const matchId = url.searchParams.get("id") ?? "";
+      if (!/^\d{1,12}$/.test(matchId)) return new Response("Invalid match id", { status: 400 });
+      try {
+        return await fetchActaPdf(matchId);
+      } catch (error) {
+        console.error("Acta download failed", error instanceof Error ? error.message : error);
+        return new Response("El acta todavía no está disponible.", {
+          status: 502,
+          headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" },
+        });
       }
     }
 

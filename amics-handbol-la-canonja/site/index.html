@@ -138,6 +138,10 @@
     .fixture-venue:focus-visible { border-radius: 3px; outline: 2px solid var(--blue); outline-offset: 2px; }
     .fixture-venue:hover .fixture-venue-name { text-decoration: underline; text-underline-offset: 2px; }
     .fixture-venue-name { min-width: 0; overflow-wrap: anywhere; }
+    .fixture-acta { display: inline-flex; min-height: 28px; align-items: center; gap: 5px; padding: 4px 8px; border: 1px solid rgba(52,57,183,.18); border-radius: 999px; background: #f0efff; color: var(--blue); font-size: 9px; font-weight: 850; text-decoration: none; white-space: nowrap; }
+    .fixture-acta svg { width: 14px; height: 14px; flex: 0 0 auto; }
+    .fixture-acta:hover { background: var(--blue); color: white; }
+    .fixture-acta:focus-visible { border-radius: 999px; outline: 2px solid var(--blue); outline-offset: 2px; }
     .fixture-card.is-next { border-color: var(--violet); box-shadow: inset 3px 0 0 var(--violet); }
     .fixture-card.is-selected { border-color: var(--blue); box-shadow: inset 4px 0 0 var(--blue), 0 5px 16px rgba(52,57,183,.1); }
     .round-navigation { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 0 0 18px; padding: 12px; border: 1px solid var(--line); border-radius: 14px; background: #f8f7ff; }
@@ -745,12 +749,16 @@
         const venue = venueName
           ? '<a class="fixture-venue" href="https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(venueName) + '" target="_blank" rel="noopener noreferrer" aria-label="' + escapeHtml((language === "ca" ? "Obrir a Google Maps: " : "Abrir en Google Maps: ") + venueName) + '"><span aria-hidden="true">📍</span><span class="fixture-venue-name">' + escapeHtml(venueName) + '</span></a>'
           : "";
+        const actaLabel = language === "ca" ? "Descarregar acta" : "Descargar acta";
+        const acta = fixture.state === "played" && fixture.homeScore !== "" && fixture.awayScore !== "" && fixture.actaUrl
+          ? '<a class="fixture-acta" href="' + escapeHtml(fixture.actaUrl) + '" aria-label="' + escapeHtml(actaLabel) + '" title="' + escapeHtml(actaLabel) + '"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5.5 2.5h6l3 3v5M11.5 2.5v3h3M10 8.5v5m0 0 2.5-2.5M10 13.5 7.5 11M4 13.5v2A1.5 1.5 0 0 0 5.5 17h9a1.5 1.5 0 0 0 1.5-1.5v-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Acta</span></a>'
+          : "";
         const round = String(fixture.round).padStart(2, "0");
         const ariaLabel = (language === "ca" ? "Jornada " : "Jornada ") + round + ": " + escapeHtml(homeName) + " contra " + escapeHtml(awayName);
         return '<article class="fixture-card' + (fixture.round === nextRound ? ' is-next' : '') + (fixture.round === currentRound ? ' is-current' : '') + (fixture.round === selectedRound ? ' is-selected' : '') + '" data-round="' + fixture.round + '" role="listitem" aria-label="' + ariaLabel + '">' +
           '<div class="fixture-day"><span class="fixture-round">Jornada ' + round + '</span><time class="fixture-date"' + (fixture.date ? ' datetime="' + escapeHtml(fixture.date) + '"' : '') + '>' + escapeHtml(formatDate(fixture.date)) + '</time></div>' +
           '<div class="fixture-main"><div class="fixture-game"><span class="fixture-team' + (ownHome ? ' is-amic' : '') + '">' + badgeMarkup(homeBadgeUrl) + '<span class="fixture-team-name">' + escapeHtml(homeName) + '</span></span><span class="fixture-result">' + escapeHtml(result) + '</span><span class="fixture-team' + (ownAway ? ' is-amic' : '') + '">' + badgeMarkup(awayBadgeUrl) + '<span class="fixture-team-name">' + escapeHtml(awayName) + '</span></span></div>' +
-          '<div class="fixture-meta"><span class="fixture-status" data-state="' + escapeHtml(fixture.state) + '">' + escapeHtml(statusLabel) + '</span><span>' + (ownHome ? words().home : words().away) + '</span><span>' + timeLabel + '</span>' + venue + '</div></div></article>';
+          '<div class="fixture-meta"><span class="fixture-status" data-state="' + escapeHtml(fixture.state) + '">' + escapeHtml(statusLabel) + '</span><span>' + (ownHome ? words().home : words().away) + '</span><span>' + timeLabel + '</span>' + venue + acta + '</div></div></article>';
       }
 
       function renderTabs() {
