@@ -86,20 +86,26 @@ function parseClubTeams(html) {
   });
 }
 
-function parsePlayers(html) {
+function parseRoster(html) {
   const table = html.match(/<table\b[^>]*\btabla-plantilla\b[^>]*>[\s\S]*?<\/table>/i)?.[0] ?? "";
   const rows = [...table.matchAll(/<tr\b[^>]*>[\s\S]*?<\/tr>/gi)].map((match) => match[0]);
   const players = [];
+  const guests = [];
   for (const row of rows) {
     if (/second-table-info/i.test(row)) continue;
     const cells = [...row.matchAll(/<td\b[^>]*>([\s\S]*?)<\/td>/gi)].map((match) => match[1]);
-    if (cells.length < 2 || !/jugador/i.test(textFromHtml(cells[1]))) continue;
+    if (cells.length < 2) continue;
+    const role = textFromHtml(cells[1]);
+    if (!/^(jugador|invitado)$/i.test(role)) continue;
     const name = row.match(/<img\b[^>]*\balt=["']([^"']+)["']/i)?.[1]
       ? decodeEntities(row.match(/<img\b[^>]*\balt=["']([^"']+)["']/i)[1]).trim()
       : textFromHtml(cells[0]);
-    if (name) players.push(name);
+    if (name) (role.toLowerCase() === "invitado" ? guests : players).push(name);
   }
-  return [...new Set(players)].sort((a, b) => a.localeCompare(b, "ca"));
+  return {
+    players: [...new Set(players)].sort((a, b) => a.localeCompare(b, "ca")),
+    guests: [...new Set(guests)].sort((a, b) => a.localeCompare(b, "ca")),
+  };
 }
 
 function parseStaff(html) {
@@ -337,6 +343,7 @@ async function buildData() {
     ]);
     const sourceRow = byId.get(team.id);
     const rosterHtml = rosterResult.status === "fulfilled" ? rosterResult.value : "";
+    const roster = rosterHtml ? parseRoster(rosterHtml) : { players: [], guests: [] };
     const calendarFixtures = scheduleResult.status === "fulfilled" ? scheduleResult.value : [];
     const scorersHtml = scorersResult.status === "fulfilled" ? scorersResult.value : "";
     const scorers = scorersHtml ? parseTeamScorers(scorersHtml, team) : [];
@@ -344,7 +351,8 @@ async function buildData() {
       ...team,
       clubLabel: sourceRow?.clubLabel ?? "Amics H.C.",
       categoryLabel: sourceRow?.categoryLabel ?? "",
-      players: rosterHtml ? parsePlayers(rosterHtml) : [],
+      players: roster.players,
+      guests: roster.guests,
       staff: rosterHtml ? parseStaff(rosterHtml) : [],
       scorers,
       scorersAvailable: hasScorersPage && /tabla_goleadores/i.test(scorersHtml),

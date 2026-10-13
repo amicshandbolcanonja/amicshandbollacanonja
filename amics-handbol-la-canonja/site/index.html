@@ -296,6 +296,7 @@
     .roster-player-name { min-width: 0; }
     .roster-player-meta { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 7px; }
     .player-goals { color: var(--muted); font-size: 9px; font-weight: 750; white-space: nowrap; }
+    .player-guest-label { padding: 3px 6px; border-radius: 99px; background: var(--lilac); color: var(--blue); font-size: 8px; font-weight: 800; line-height: 1.2; white-space: nowrap; }
     .roster-player.is-top-scorer { border-color: var(--violet); background: #f0efff; }
     .top-scorer-emoji { flex: 0 0 auto; font-size: 15px; line-height: 1; }
     .staff-section { margin-top: 24px; padding-top: 22px; border-top: 1px solid var(--line); }
@@ -792,9 +793,14 @@
           if (!fixtures.some((fixture) => fixture.round === selectedRounds[team.key])) selectedRounds[team.key] = currentRound;
           const selectedRound = selectedRounds[team.key];
           const selectedRoundIndex = fixtures.findIndex((fixture) => fixture.round === selectedRound);
+          const rosterPlayers = [
+            ...(team.players || []).map((name) => ({ name, invited: false })),
+            ...(team.guests || []).map((name) => ({ name, invited: true })),
+          ].sort((a, b) => a.name.localeCompare(b.name, language === "ca" ? "ca" : "es"));
           const topScorers = new Set((team.topScorers || []).map(normalizePlayerName));
           const goalsByPlayer = new Map((team.scorers || []).map((scorer) => [normalizePlayerName(scorer.name), Number(scorer.goals)]));
           const topScorerLabel = language === "ca" ? "Màxim golejador" : "Máximo goleador";
+          const guestLabel = language === "ca" ? "Convidat" : "Invitado";
           const scorerSourceNote = team.scorersUrl
             ? '<p class="roster-source"><a href="' + escapeHtml(team.scorersUrl) + '" target="_blank" rel="noopener noreferrer">' + (language === "ca" ? "Golejadors FCH" : "Goleadores FCH") + ' ↗</a></p>'
             : "";
@@ -813,8 +819,8 @@
           const calendar = fixtures.length
             ? '<div class="fixture-list" role="list" aria-label="' + escapeHtml(language === "ca" ? "Partits de " + title : "Partidos de " + title) + '">' + fixtures.map((fixture) => fixtureMarkup(team, fixture, next, currentRound, selectedRound)).join("") + '</div>'
             : '<div class="fixture-empty"><strong>' + escapeHtml(words().noFixtures) + '</strong>' + escapeHtml(words().noFixturesText) + '</div>';
-          const players = team.players?.length
-            ? '<ol class="roster-grid">' + team.players.map((player) => {
+          const players = rosterPlayers.length
+            ? '<ol class="roster-grid">' + rosterPlayers.map(({ name: player, invited }) => {
               const isTopScorer = team.key === "senior-masculi" && topScorers.has(normalizePlayerName(player));
               const goals = goalsByPlayer.get(normalizePlayerName(player));
               const goalsLabel = language === "ca" ? (goals === 1 ? "gol" : "gols") : (goals === 1 ? "gol" : "goles");
@@ -822,8 +828,9 @@
               const badge = isTopScorer
                 ? '<span class="top-scorer-emoji" role="img" aria-label="' + escapeHtml(topScorerLabel) + '" title="' + escapeHtml(topScorerLabel) + '">⚽</span>'
                 : "";
+              const guestMarkup = invited ? '<small class="player-guest-label">' + escapeHtml(guestLabel) + '</small>' : "";
               const goalsMarkup = showGoals ? '<small class="player-goals">' + (goals ?? 0) + ' ' + goalsLabel + '</small>' : "";
-              return '<li class="roster-player' + (isTopScorer ? ' is-top-scorer' : '') + '"><span class="roster-player-name">' + escapeHtml(player) + '</span><span class="roster-player-meta">' + goalsMarkup + badge + '</span></li>';
+              return '<li class="roster-player' + (isTopScorer ? ' is-top-scorer' : '') + '"><span class="roster-player-name">' + escapeHtml(player) + '</span><span class="roster-player-meta">' + guestMarkup + goalsMarkup + badge + '</span></li>';
             }).join("") + '</ol>'
             : '<p class="calendar-note">' + escapeHtml(words().noPlayers) + '</p>';
           const staff = team.staff?.length
@@ -832,7 +839,7 @@
           return '<section class="schedule-panel" role="tabpanel" id="schedule-' + escapeHtml(team.key) + '" aria-labelledby="tab-' + escapeHtml(team.key) + '"' + (active ? '' : ' hidden') + '>' +
             '<div class="schedule-heading"><div><p class="section-label">' + escapeHtml(words().calendar) + ' · ' + escapeHtml(siteData.season) + '</p><h3>' + escapeHtml(title) + '</h3><p>' + escapeHtml(competition) + '</p></div><span class="schedule-stamp">' + fixtures.length + ' ' + escapeHtml(words().fixtures) + '</span></div>' +
             roundNavigation + calendar + '<p class="calendar-note">' + escapeHtml(words().update) + '</p>' +
-            '<details class="roster-section"><summary class="roster-heading"><h4>' + escapeHtml(words().roster) + '</h4><span class="roster-summary-meta">' + (team.players?.length || 0) + ' ' + escapeHtml(words().players) + '</span><span class="roster-chevron" aria-hidden="true">⌄</span></summary><div class="roster-content">' + scorerSourceNote + players +
+            '<details class="roster-section"><summary class="roster-heading"><h4>' + escapeHtml(words().roster) + '</h4><span class="roster-summary-meta">' + rosterPlayers.length + ' ' + escapeHtml(words().players) + '</span><span class="roster-chevron" aria-hidden="true">⌄</span></summary><div class="roster-content">' + scorerSourceNote + players +
             '<div class="staff-section"><div class="roster-heading"><h4>' + escapeHtml(staffTitle) + '</h4><span>' + (team.staff?.length || 0) + ' ' + escapeHtml(staffCount) + '</span></div>' + staff + '</div></div></details></section>';
         });
         panelsNode.innerHTML = panels.join("");
