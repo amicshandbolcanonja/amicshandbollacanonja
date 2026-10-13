@@ -160,26 +160,13 @@
     .instagram-account svg { width: 19px; height: 19px; flex: 0 0 auto; }
     .instagram-profile-link { flex: 0 0 auto; color: var(--blue); text-decoration-thickness: 1px; text-underline-offset: 4px; }
     .instagram-post-frame { display: grid; min-height: 330px; place-items: center; overflow-x: auto; margin-top: 16px; border-radius: 14px; background: #f8f7ff; }
-    .instagram-gallery { display: none; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 18px; }
-    .instagram-gallery:empty { display: none; }
-    .instagram-gallery-item { display: grid; min-width: 0; min-height: 360px; place-items: start center; overflow: hidden; border-radius: 14px; background: #f8f7ff; }
-    .instagram-gallery-item blockquote.instagram-media { width: 100% !important; max-width: 400px !important; min-width: 280px !important; margin: 0 auto !important; }
-    .instagram-gallery .instagram-post-status { min-height: 360px; display: grid; place-items: center; }
     .instagram-post-status { max-width: 330px; margin: 0; padding: 26px; color: var(--muted); font-size: 13px; line-height: 1.7; text-align: center; }
     .instagram-post-frame blockquote.instagram-media { width: 100% !important; max-width: 540px !important; min-width: 280px !important; margin: 0 auto !important; }
     .instagram-latest-link { display: flex; justify-content: center; margin: 14px auto 2px; color: var(--blue); font-size: 13px; font-weight: 800; text-underline-offset: 4px; }
     @media (min-width: 851px) {
-      .social-section { display: block; }
-      .social-copy { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(240px, .9fr); gap: 0 42px; align-items: end; }
-      .social-copy .section-label { grid-column: 1 / -1; }
-      .social-copy h2 { grid-column: 1; grid-row: 2; margin-bottom: 0; font-size: clamp(40px, 5vw, 64px); font-weight: 820; letter-spacing: -.075em; line-height: .98; }
-      .social-copy > p:not(.section-label) { grid-column: 2; grid-row: 2; align-self: end; margin: 0 0 8px; }
-      .social-section .instagram-card { width: 100%; max-width: none; margin-top: 28px; }
-      .social-section .instagram-post-frame { display: none; }
-      .social-section .instagram-gallery { display: grid; }
-    }
-    @media (min-width: 851px) and (max-width: 1100px) {
-      .instagram-gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .social-section .instagram-card { width: 100%; max-width: 410px; justify-self: end; }
+      .social-section .instagram-post-frame { overflow: visible; }
+      .social-section .instagram-post-frame blockquote.instagram-media { max-width: 372px !important; }
     }
     .visit { padding-top: 20px; }
     .visit-inner { display: grid; grid-template-columns: 1.1fr .9fr; min-height: 390px; overflow: hidden; border-radius: 8px 30px 8px 30px; background: var(--lilac); }
@@ -219,7 +206,7 @@
       .team-card { min-height: 230px; padding: 18px; }
       .team-card h3 { font-size: 22px; }
       .social-section { grid-template-columns: 1fr; gap: 27px; padding-top: 0; }
-      .instagram-card { padding: 14px; }
+      .instagram-card { padding: 12px; }
       .instagram-post-frame { min-height: 330px; }
     }
     @media (max-width: 650px) {
@@ -288,6 +275,14 @@
     .roster-heading h4 { margin: 0; font-size: 20px; font-weight: 850; letter-spacing: -.045em; }
     .roster-heading span { color: var(--muted); font-size: 10px; font-weight: 750; }
     .roster-heading a { color: var(--blue); text-underline-offset: 3px; }
+    details.roster-section > summary { align-items: center; margin-bottom: 0; cursor: pointer; list-style: none; }
+    details.roster-section > summary::-webkit-details-marker { display: none; }
+    .roster-summary-meta { display: inline-flex; align-items: center; gap: 9px; margin-left: auto; text-align: right; }
+    .roster-chevron { color: var(--blue) !important; font-size: 18px !important; transition: transform .2s; }
+    .roster-section[open] .roster-chevron { transform: rotate(180deg); }
+    .roster-content { margin-top: 15px; }
+    .roster-source { margin: 0 0 12px; color: var(--muted); font-size: 10px; line-height: 1.5; }
+    .roster-source a { color: var(--blue); text-underline-offset: 3px; }
     .roster-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; margin: 0; padding: 0; list-style: none; }
     .roster-player { display: flex; min-width: 0; min-height: 41px; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 13px; border: 1px solid rgba(25,24,54,.1); border-radius: 9px; background: #f8f7ff; color: var(--ink); font-size: 11px; font-weight: 700; line-height: 1.4; }
     .roster-player-name { min-width: 0; }
@@ -537,7 +532,6 @@
         <div class="instagram-post-frame" id="instagram-post" role="region" aria-label="Última publicació d’Instagram" data-ca-label="Última publicació d’Instagram" data-es-label="Última publicación de Instagram">
           <p class="instagram-post-status" id="instagram-status" data-ca="Carregant l’última publicació…" data-es="Cargando la última publicación…">Carregant l’última publicació…</p>
         </div>
-        <div class="instagram-gallery" id="instagram-gallery" role="region" aria-label="Publicaciones recientes de Instagram" data-ca-label="Les tres publicacions més recents d’Instagram" data-es-label="Las tres publicaciones más recientes de Instagram"></div>
         <a class="instagram-latest-link" id="instagram-latest-link" href="https://www.instagram.com/amicshandbolcanonja/" target="_blank" rel="noopener noreferrer" data-ca="Veure el perfil ↗" data-es="Ver el perfil ↗">Veure el perfil ↗</a>
       </div>
     </section>
@@ -581,7 +575,6 @@
       const menuButton = document.getElementById("menu-toggle");
       const siteNav = document.getElementById("primary-nav");
       const instagramPostNode = document.getElementById("instagram-post");
-      const instagramGalleryNode = document.getElementById("instagram-gallery");
       const instagramLatestLink = document.getElementById("instagram-latest-link");
       const instagramProfileUrl = "https://www.instagram.com/amicshandbolcanonja/";
       let language = "ca";
@@ -593,7 +586,7 @@
       let instagramStatusKey = "loading";
       let instagramEmbedReady = false;
       let instagramEmbedPromise = null;
-      let instagramPostUrls = [instagramProfileUrl];
+      let instagramPostUrl = instagramProfileUrl;
       let instagramPostIsLatest = false;
 
       const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[character]));
@@ -649,7 +642,7 @@
       }
 
       function updateInstagramLink() {
-        instagramLatestLink.href = instagramPostUrls[0] || instagramProfileUrl;
+        instagramLatestLink.href = instagramPostUrl;
         instagramLatestLink.textContent = instagramPostIsLatest
           ? (language === "ca" ? "Veure la publicació ↗" : "Ver la publicación ↗")
           : (language === "ca" ? "Veure el perfil ↗" : "Ver el perfil ↗");
@@ -664,44 +657,22 @@
         status.className = "instagram-post-status";
         status.id = "instagram-status";
         status.textContent = messages[instagramStatusKey][language === "ca" ? 0 : 1];
-        if (window.matchMedia("(min-width: 851px)").matches) {
-          instagramPostNode.replaceChildren();
-          instagramGalleryNode.replaceChildren(status);
-        } else {
-          instagramGalleryNode.replaceChildren();
-          instagramPostNode.replaceChildren(status);
-        }
+        instagramPostNode.replaceChildren(status);
       }
 
-      function createInstagramEmbed(url) {
+      function renderInstagramEmbed() {
         const embed = document.createElement("blockquote");
         embed.className = "instagram-media";
-        embed.setAttribute("data-instgrm-permalink", url);
+        embed.setAttribute("data-instgrm-permalink", instagramPostUrl);
         embed.setAttribute("data-instgrm-version", "14");
         embed.style.width = "100%";
         const link = document.createElement("a");
-        link.href = url;
+        link.href = instagramPostUrl;
         link.target = "_blank";
         link.rel = "noopener noreferrer";
         link.textContent = language === "ca" ? "Veure la publicació a Instagram" : "Ver la publicación en Instagram";
         embed.append(link);
-        return embed;
-      }
-
-      function renderInstagramEmbeds() {
-        if (window.matchMedia("(min-width: 851px)").matches) {
-          instagramPostNode.replaceChildren();
-          const items = instagramPostUrls.slice(0, 3).map((url) => {
-            const item = document.createElement("article");
-            item.className = "instagram-gallery-item";
-            item.append(createInstagramEmbed(url));
-            return item;
-          });
-          instagramGalleryNode.replaceChildren(...items);
-        } else {
-          instagramGalleryNode.replaceChildren();
-          instagramPostNode.replaceChildren(createInstagramEmbed(instagramPostUrls[0] || instagramProfileUrl));
-        }
+        instagramPostNode.replaceChildren(embed);
       }
 
       function loadInstagramEmbedScript() {
@@ -724,22 +695,21 @@
             const response = await fetch("./api/instagram.json", { cache: "no-store" });
             if (response.ok) {
               const payload = await response.json();
-              const candidates = Array.isArray(payload.posts) ? payload.posts : payload.permalink ? [payload.permalink] : [];
-              instagramPostUrls = [...new Set(candidates.flatMap((permalink) => {
-                try {
-                  const candidate = new URL(permalink);
-                  return candidate.hostname === "www.instagram.com" && /^\/(p|reel|tv)\/[A-Za-z0-9_-]+\/?$/.test(candidate.pathname) ? [candidate.href] : [];
-                } catch { return []; }
-              }))].slice(0, 3);
-              instagramPostIsLatest = instagramPostUrls.length > 0;
+              const permalink = payload.permalink || (Array.isArray(payload.posts) ? payload.posts[0] : "");
+              try {
+                const candidate = new URL(permalink);
+                if (candidate.hostname === "www.instagram.com" && /^\/(p|reel|tv)\/[A-Za-z0-9_-]+\/?$/.test(candidate.pathname)) {
+                  instagramPostUrl = candidate.href;
+                  instagramPostIsLatest = true;
+                }
+              } catch {}
             }
           } catch {}
-          if (!instagramPostUrls.length) instagramPostUrls = [instagramProfileUrl];
           updateInstagramLink();
-          renderInstagramEmbeds();
+          renderInstagramEmbed();
 
           await loadInstagramEmbedScript();
-          renderInstagramEmbeds();
+          renderInstagramEmbed();
           window.instgrm?.Embeds?.process();
           instagramEmbedReady = true;
         } catch {
@@ -747,15 +717,6 @@
           updateInstagramStatus();
         }
       }
-
-      const instagramDesktopLayout = window.matchMedia("(min-width: 851px)");
-      const refreshInstagramLayout = () => {
-        if (!instagramEmbedReady) return;
-        renderInstagramEmbeds();
-        window.instgrm?.Embeds?.process();
-      };
-      if (instagramDesktopLayout.addEventListener) instagramDesktopLayout.addEventListener("change", refreshInstagramLayout);
-      else instagramDesktopLayout.addListener?.(refreshInstagramLayout);
 
       function fixtureMarkup(team, fixture, nextRound, currentRound, selectedRound) {
         const ownHome = fixture.homeId === team.id;
@@ -817,8 +778,8 @@
           const topScorers = new Set((team.topScorers || []).map(normalizePlayerName));
           const goalsByPlayer = new Map((team.scorers || []).map((scorer) => [normalizePlayerName(scorer.name), Number(scorer.goals)]));
           const topScorerLabel = language === "ca" ? "Màxim golejador" : "Máximo goleador";
-          const scorerSourceLink = team.scorersUrl
-            ? ' · <a href="' + escapeHtml(team.scorersUrl) + '" target="_blank" rel="noopener noreferrer">' + (language === "ca" ? "Golejadors FCH" : "Goleadores FCH") + ' ↗</a>'
+          const scorerSourceNote = team.scorersUrl
+            ? '<p class="roster-source"><a href="' + escapeHtml(team.scorersUrl) + '" target="_blank" rel="noopener noreferrer">' + (language === "ca" ? "Golejadors FCH" : "Goleadores FCH") + ' ↗</a></p>'
             : "";
           const staffTitle = language === "ca" ? "Cos tècnic" : "Cuerpo técnico";
           const staffCount = language === "ca" ? "persones" : "personas";
@@ -854,8 +815,8 @@
           return '<section class="schedule-panel" role="tabpanel" id="schedule-' + escapeHtml(team.key) + '" aria-labelledby="tab-' + escapeHtml(team.key) + '"' + (active ? '' : ' hidden') + '>' +
             '<div class="schedule-heading"><div><p class="section-label">' + escapeHtml(words().calendar) + ' · ' + escapeHtml(siteData.season) + '</p><h3>' + escapeHtml(title) + '</h3><p>' + escapeHtml(competition) + '</p></div><span class="schedule-stamp">' + fixtures.length + ' ' + escapeHtml(words().fixtures) + '</span></div>' +
             roundNavigation + calendar + '<p class="calendar-note">' + escapeHtml(words().update) + '</p>' +
-            '<div class="roster-section"><div class="roster-heading"><h4>' + escapeHtml(words().roster) + '</h4><span>' + (team.players?.length || 0) + ' ' + escapeHtml(words().players) + scorerSourceLink + '</span></div>' + players +
-            '<div class="staff-section"><div class="roster-heading"><h4>' + escapeHtml(staffTitle) + '</h4><span>' + (team.staff?.length || 0) + ' ' + escapeHtml(staffCount) + '</span></div>' + staff + '</div></div></section>';
+            '<details class="roster-section"><summary class="roster-heading"><h4>' + escapeHtml(words().roster) + '</h4><span class="roster-summary-meta">' + (team.players?.length || 0) + ' ' + escapeHtml(words().players) + '</span><span class="roster-chevron" aria-hidden="true">⌄</span></summary><div class="roster-content">' + scorerSourceNote + players +
+            '<div class="staff-section"><div class="roster-heading"><h4>' + escapeHtml(staffTitle) + '</h4><span>' + (team.staff?.length || 0) + ' ' + escapeHtml(staffCount) + '</span></div>' + staff + '</div></div></details></section>';
         });
         panelsNode.innerHTML = panels.join("");
         panelsNode.querySelectorAll("[data-round-control]").forEach((button) => button.addEventListener("click", () => {

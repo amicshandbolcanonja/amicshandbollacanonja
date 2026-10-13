@@ -383,10 +383,11 @@ async function getData(forceRefresh) {
 
 function parseInstagramPosts(html) {
   const mediaIndex = html.indexOf("graphql_media");
-  if (mediaIndex < 0) return [];
+  if (mediaIndex < 0) return "";
   const media = html.slice(mediaIndex, mediaIndex + 50000).replaceAll(String.fromCharCode(92) + '"', '"');
   const shortcodes = [...media.matchAll(/"shortcode":"([A-Za-z0-9_-]+)"/g)].map((match) => match[1]);
-  return [...new Set(shortcodes)].slice(0, 3).map((shortcode) => `https://www.instagram.com/p/${shortcode}/`);
+  const latestShortcode = [...new Set(shortcodes)][0];
+  return latestShortcode ? `https://www.instagram.com/p/${latestShortcode}/` : "";
 }
 
 async function getInstagramPosts() {
@@ -398,9 +399,9 @@ async function getInstagramPosts() {
     signal: AbortSignal.timeout(15000),
   });
   if (!response.ok) throw new Error(`Instagram returned ${response.status}`);
-  const posts = parseInstagramPosts(await response.text());
-  if (!posts.length) throw new Error("Instagram did not return any posts");
-  cachedInstagramPosts = { posts };
+  const permalink = parseInstagramPosts(await response.text());
+  if (!permalink) throw new Error("Instagram did not return any posts");
+  cachedInstagramPosts = { permalink };
   instagramCachedAt = Date.now();
   return cachedInstagramPosts;
 }
@@ -427,7 +428,7 @@ export default {
         return jsonResponse(await getInstagramPosts());
       } catch (error) {
         console.error("Instagram sync failed", error instanceof Error ? error.message : error);
-        return jsonResponse({ posts: [] }, 502);
+        return jsonResponse({ permalink: "" }, 502);
       }
     }
 

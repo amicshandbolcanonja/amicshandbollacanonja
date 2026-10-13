@@ -8,7 +8,7 @@ if (dirname(distRoot) !== projectRoot || distRoot === projectRoot) {
   throw new Error(`Refusing to write output outside this project: ${distRoot}`);
 }
 
-async function fetchLatestInstagramPosts() {
+async function fetchLatestInstagramPost() {
   try {
     const response = await fetch("https://www.instagram.com/amicshandbolcanonja/embed/", {
       headers: { accept: "text/html,application/xhtml+xml" },
@@ -23,13 +23,13 @@ async function fetchLatestInstagramPosts() {
       .replaceAll(String.fromCharCode(92) + '"', '"');
     const shortcodes = [...media.matchAll(/"shortcode":"([A-Za-z0-9_-]+)"/g)]
       .map((match) => match[1]);
-    const uniqueShortcodes = [...new Set(shortcodes)].slice(0, 3);
+    const uniqueShortcodes = [...new Set(shortcodes)].slice(0, 1);
     if (!uniqueShortcodes.length) throw new Error("Instagram did not return a post shortcode");
 
-    return { posts: uniqueShortcodes.map((shortcode) => "https://www.instagram.com/p/" + shortcode + "/") };
+    return { permalink: "https://www.instagram.com/p/" + uniqueShortcodes[0] + "/" };
   } catch (error) {
     console.warn("Could not resolve the latest Instagram post: " + (error instanceof Error ? error.message : String(error)));
-    return { posts: [] };
+    return { permalink: "" };
   }
 }
 
@@ -66,7 +66,7 @@ const response = await worker.fetch(new Request("https://amics-hc.invalid/api/da
 if (!response.ok) throw new Error(`Could not fetch club data for the Pages snapshot (${response.status})`);
 const data = await response.json();
 if (!Array.isArray(data.teams)) throw new Error("The data endpoint returned an invalid payload");
-const instagramPosts = await fetchLatestInstagramPosts();
+const instagramPost = await fetchLatestInstagramPost();
 
 await rm(distRoot, { recursive: true, force: true });
 await Promise.all([
@@ -77,7 +77,7 @@ await Promise.all([
   writeFile(resolve(distRoot, "index.html"), page, "utf8"),
   writeFile(resolve(distRoot, "api/data.json"), `${JSON.stringify(data)}\n`, "utf8"),
   writeFile(resolve(distRoot, "images/ascenso_ahcjpeg.jpeg"), heroPhoto),
-  writeFile(resolve(distRoot, "api/instagram.json"), JSON.stringify(instagramPosts) + "\n", "utf8"),
+  writeFile(resolve(distRoot, "api/instagram.json"), JSON.stringify(instagramPost) + "\n", "utf8"),
   writeFile(resolve(distRoot, ".nojekyll"), ""),
 ]);
 console.log(`Built GitHub Pages snapshot in ${distRoot}`);
