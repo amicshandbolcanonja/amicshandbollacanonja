@@ -156,7 +156,24 @@ function numberFixtures(fixtures) {
   return fixtures.map(({ sourceOrder, ...fixture }, index) => ({ ...fixture, round: index + 1 }));
 }
 
-function fixtureFromRow(row, team, scoreClass, dateClass, venueClass) {
+function parseTeamBadgeUrls(html) {
+  const badgeUrls = new Map();
+  const slides = [...html.matchAll(/<div\b[^>]*class=["'][^"']*\bdiv_escudos_cabecera\b[^"']*["'][^>]*>([\s\S]*?)<\/div>/gi)];
+  for (const [, slide] of slides) {
+    const teamId = slide.match(/\bid_equipo=(\d+)/i)?.[1];
+    const imageSource = slide.match(/<img\b[^>]*\bsrc=["']([^"']+)["']/i)?.[1];
+    if (!teamId || !imageSource) continue;
+    try {
+      const badgeUrl = new URL(imageSource.startsWith("//") ? `https:${imageSource}` : imageSource, SOURCE_ORIGIN);
+      if (badgeUrl.protocol === "https:" && badgeUrl.hostname === "balonmano.isquad.es" && /^\/images\/afiliacion_clubs\/\d+\//i.test(badgeUrl.pathname)) {
+        badgeUrls.set(teamId, badgeUrl.href);
+      }
+    } catch {}
+  }
+  return badgeUrls;
+}
+
+function fixtureFromRow(row, team, scoreClass, dateClass, venueClass, badgeUrls = new Map()) {
   const namesBlock = row.match(/<div\b[^>]*class=["']nombres-equipos["'][^>]*>([\s\S]*?)<\/div>/i)?.[1] ?? "";
   const sides = [...namesBlock.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/gi)].map((match) => ({
     id: match[1].match(/id_equipo=(\d+)/i)?.[1] ?? "",
@@ -182,8 +199,10 @@ function fixtureFromRow(row, team, scoreClass, dateClass, venueClass) {
   return {
     homeId: sides[0].id,
     homeName: sides[0].name,
+    homeBadgeUrl: badgeUrls.get(sides[0].id) ?? "",
     awayId: sides[1].id,
     awayName: sides[1].name,
+    awayBadgeUrl: badgeUrls.get(sides[1].id) ?? "",
     homeScore: score?.[1] ?? "",
     awayScore: score?.[2] ?? "",
     date,
@@ -195,9 +214,10 @@ function fixtureFromRow(row, team, scoreClass, dateClass, venueClass) {
 
 function parseTeamFixtures(html, team) {
   const rows = [...html.matchAll(/<tr\b[^>]*class=["'][^"']*\bpartido\b[^"']*["'][^>]*>[\s\S]*?<\/tr>/gi)].map((match) => match[0]);
+  const badgeUrls = parseTeamBadgeUrls(html);
   let sourceOrder = 0;
   const fixtures = rows.flatMap((row) => {
-    const fixture = fixtureFromRow(row, team, "col-marcador", "fecha", "col-lugar");
+    const fixture = fixtureFromRow(row, team, "col-marcador", "fecha", "col-lugar", badgeUrls);
     return fixture ? [{ ...fixture, sourceOrder: sourceOrder++ }] : [];
   });
   return numberFixtures(fixtures);
@@ -205,10 +225,11 @@ function parseTeamFixtures(html, team) {
 
 function parseCalendar(html, team) {
   const rows = [...html.matchAll(/<tr\b[^>]*>[\s\S]*?<\/tr>/gi)].map((match) => match[0]);
+  const badgeUrls = parseTeamBadgeUrls(html);
   let sourceOrder = 0;
   const fixtures = rows.flatMap((row) => {
     if (!row.includes(`id_equipo=${team.id}`) || !/class=["']fecha["']/i.test(row)) return [];
-    const fixture = fixtureFromRow(row, team, "marcador", "fecha", "lugar");
+    const fixture = fixtureFromRow(row, team, "marcador", "fecha", "lugar", badgeUrls);
     return fixture ? [{ ...fixture, sourceOrder: sourceOrder++ }] : [];
   });
   return numberFixtures(fixtures);
