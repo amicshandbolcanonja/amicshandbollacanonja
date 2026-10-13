@@ -161,7 +161,7 @@ function parseTeamBadgeUrls(html) {
   const slides = [...html.matchAll(/<div\b[^>]*class=["'][^"']*\bdiv_escudos_cabecera\b[^"']*["'][^>]*>([\s\S]*?)<\/div>/gi)];
   for (const [, slide] of slides) {
     const teamId = slide.match(/\bid_equipo=(\d+)/i)?.[1];
-    const imageSource = slide.match(/<img\b[^>]*\bsrc=["']([^"']+)["']/i)?.[1];
+    const imageSource = slide.match(/<img\b[^>]*?\bsrc=["']([^"']+)["']/i)?.[1];
     if (!teamId || !imageSource) continue;
     try {
       const badgeUrl = new URL(imageSource.startsWith("//") ? `https:${imageSource}` : imageSource, SOURCE_ORIGIN);
