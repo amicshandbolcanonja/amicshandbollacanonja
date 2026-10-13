@@ -130,6 +130,10 @@
     .fixture-status { padding: 4px 7px; border-radius: 999px; background: #eeeaff; color: var(--blue); font-weight: 850; }
     .fixture-status[data-state="suspended"] { background: #f0eff5; color: #59586e; }
     .fixture-status[data-state="played"] { background: var(--blue); color: white; }
+    .fixture-venue { display: inline-flex; min-height: 28px; align-items: center; gap: 4px; color: inherit; text-decoration: none; }
+    .fixture-venue:focus-visible { border-radius: 3px; outline: 2px solid var(--blue); outline-offset: 2px; }
+    .fixture-venue:hover .fixture-venue-name { text-decoration: underline; text-underline-offset: 2px; }
+    .fixture-venue-name { min-width: 0; overflow-wrap: anywhere; }
     .fixture-card.is-next { border-color: var(--violet); box-shadow: inset 3px 0 0 var(--violet); }
     .fixture-card.is-selected { border-color: var(--blue); box-shadow: inset 4px 0 0 var(--blue), 0 5px 16px rgba(52,57,183,.1); }
     .round-navigation { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 0 0 18px; padding: 12px; border: 1px solid var(--line); border-radius: 14px; background: #f8f7ff; }
@@ -726,7 +730,10 @@
         const result = fixture.homeScore !== "" && fixture.awayScore !== "" ? fixture.homeScore + "–" + fixture.awayScore : "VS";
         const statusLabel = fixture.state === "played" ? words().played : fixture.state === "suspended" ? words().suspended : words().pending;
         const timeLabel = fixture.time ? escapeHtml(fixture.time) + " h" : words().time;
-        const venue = fixture.venue ? '<span>' + escapeHtml(fixture.venue) + '</span>' : "";
+        const venueName = String(fixture.venue ?? "").trim();
+        const venue = venueName
+          ? '<a class="fixture-venue" href="https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(venueName) + '" target="_blank" rel="noopener noreferrer" aria-label="' + escapeHtml((language === "ca" ? "Obrir a Google Maps: " : "Abrir en Google Maps: ") + venueName) + '"><span aria-hidden="true">📍</span><span class="fixture-venue-name">' + escapeHtml(venueName) + '</span></a>'
+          : "";
         const round = String(fixture.round).padStart(2, "0");
         const ariaLabel = (language === "ca" ? "Jornada " : "Jornada ") + round + ": " + escapeHtml(homeName) + " contra " + escapeHtml(awayName);
         return '<article class="fixture-card' + (fixture.round === nextRound ? ' is-next' : '') + (fixture.round === currentRound ? ' is-current' : '') + (fixture.round === selectedRound ? ' is-selected' : '') + '" data-round="' + fixture.round + '" role="listitem" aria-label="' + ariaLabel + '">' +
