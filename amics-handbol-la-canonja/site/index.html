@@ -32,7 +32,8 @@
     .skip-link:focus { transform: translateY(0); }
     :focus-visible { outline: 3px solid var(--orange); outline-offset: 4px; }
     .shell { width: min(1180px, calc(100% - 48px)); margin-inline: auto; }
-    .topbar { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; min-height: 82px; border-bottom: 1px solid var(--line); background: rgba(244,242,235,.96); backdrop-filter: blur(12px); }
+    .topbar { position: sticky; top: 0; z-index: 10; border-bottom: 1px solid var(--line); background: rgba(244,242,235,.96); backdrop-filter: blur(12px); }
+    .topbar-inner { position: relative; display: flex; align-items: center; justify-content: space-between; min-height: 82px; }
     #inici, #club, #equips, #actualitat, #visita, .schedules, .schedule-panel { scroll-margin-top: 98px; }
     .brand { display: inline-flex; align-items: center; gap: 11px; text-decoration: none; }
     .brand-mark { display: grid; width: 48px; height: 48px; flex: 0 0 48px; place-items: center; overflow: hidden; padding: 3px; border: 1px solid var(--line); border-radius: 50%; background: var(--white); }
@@ -218,7 +219,7 @@
     }
     @media (max-width: 650px) {
       .shell { width: min(100% - 34px, 500px); }
-      .topbar { min-height: 72px; }
+      .topbar-inner { min-height: 72px; }
       .brand-mark { width: 40px; height: 40px; flex-basis: 40px; }
       .brand-name { font-size: 12px; }
       .menu-toggle { display: inline-flex; }
@@ -309,7 +310,8 @@
 
     @media (max-width: 650px) {
       .shell { width: min(calc(100% - 32px), 500px); }
-      .topbar { position: sticky; top: 0; display: flex; min-height: 64px; gap: 12px; padding-block: 8px; background: rgba(244,242,235,.98); backdrop-filter: blur(12px); }
+      .topbar { padding-block: 8px; background: rgba(244,242,235,.98); }
+      .topbar-inner { min-height: 48px; gap: 12px; }
       .brand { min-width: 0; gap: 9px; }
       .brand-mark { width: 36px; height: 36px; flex-basis: 36px; }
       .brand-name { font-size: 11px; white-space: nowrap; }
@@ -424,7 +426,7 @@
 
     @media (max-width: 370px) {
       .shell { width: calc(100% - 24px); }
-      .topbar { gap: 6px; }
+      .topbar-inner { gap: 6px; }
       .brand { gap: 7px; }
       .brand-mark { width: 33px; height: 33px; flex-basis: 33px; }
       .brand-name { font-size: 10px; }
@@ -443,7 +445,8 @@
 </head>
 <body>
   <a class="skip-link" href="#main" data-ca="Salta al contingut" data-es="Saltar al contenido">Salta al contingut</a>
-  <header class="shell topbar">
+  <header class="topbar">
+    <div class="shell topbar-inner">
     <a class="brand" href="#inici" aria-label="Amics Handbol La Canonja — inici">
       <span class="brand-mark" aria-hidden="true"><img src="https://balonmano.isquad.es/images/afiliacion_clubs/100639/square_73326d626f6b37737763.jpg" alt="" fetchpriority="high"></span>
       <span class="brand-name">Amics Handbol<span data-ca="La Canonja · des de 2017" data-es="La Canonja · desde 2017">La Canonja · des de 2017</span></span>
@@ -467,6 +470,7 @@
         <span data-ca="Segueix-nos" data-es="Síguenos">Segueix-nos</span>
         <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 10h11m-4-4 4 4-4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </a>
+    </div>
     </div>
   </header>
 
