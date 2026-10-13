@@ -8,7 +8,7 @@ if (dirname(distRoot) !== projectRoot || distRoot === projectRoot) {
   throw new Error(`Refusing to write output outside this project: ${distRoot}`);
 }
 
-async function fetchLatestInstagramPost() {
+async function fetchLatestInstagramPosts() {
   try {
     const response = await fetch("https://www.instagram.com/amicshandbolcanonja/embed/", {
       headers: { accept: "text/html,application/xhtml+xml" },
@@ -21,18 +21,15 @@ async function fetchLatestInstagramPost() {
     if (mediaIndex < 0) throw new Error("Instagram did not return profile media");
     const media = html.slice(mediaIndex, mediaIndex + 50000)
       .replaceAll(String.fromCharCode(92) + '"', '"');
-    const marker = '"shortcode":"';
-    const shortcodeIndex = media.indexOf(marker);
-    if (shortcodeIndex < 0) throw new Error("Instagram did not return a post shortcode");
-    const shortcodeStart = shortcodeIndex + marker.length;
-    const shortcodeEnd = media.indexOf('"', shortcodeStart);
-    const shortcode = media.slice(shortcodeStart, shortcodeEnd);
-    if (!/^[A-Za-z0-9_-]+$/.test(shortcode)) throw new Error("Instagram returned an invalid post shortcode");
+    const shortcodes = [...media.matchAll(/"shortcode":"([A-Za-z0-9_-]+)"/g)]
+      .map((match) => match[1]);
+    const uniqueShortcodes = [...new Set(shortcodes)].slice(0, 3);
+    if (!uniqueShortcodes.length) throw new Error("Instagram did not return a post shortcode");
 
-    return { permalink: "https://www.instagram.com/p/" + shortcode + "/" };
+    return { posts: uniqueShortcodes.map((shortcode) => "https://www.instagram.com/p/" + shortcode + "/") };
   } catch (error) {
     console.warn("Could not resolve the latest Instagram post: " + (error instanceof Error ? error.message : String(error)));
-    return { permalink: "" };
+    return { posts: [] };
   }
 }
 
@@ -69,7 +66,7 @@ const response = await worker.fetch(new Request("https://amics-hc.invalid/api/da
 if (!response.ok) throw new Error(`Could not fetch club data for the Pages snapshot (${response.status})`);
 const data = await response.json();
 if (!Array.isArray(data.teams)) throw new Error("The data endpoint returned an invalid payload");
-const instagramPost = await fetchLatestInstagramPost();
+const instagramPosts = await fetchLatestInstagramPosts();
 
 await rm(distRoot, { recursive: true, force: true });
 await Promise.all([
@@ -80,7 +77,7 @@ await Promise.all([
   writeFile(resolve(distRoot, "index.html"), page, "utf8"),
   writeFile(resolve(distRoot, "api/data.json"), `${JSON.stringify(data)}\n`, "utf8"),
   writeFile(resolve(distRoot, "images/ascenso_ahcjpeg.jpeg"), heroPhoto),
-  writeFile(resolve(distRoot, "api/instagram.json"), JSON.stringify(instagramPost) + "\n", "utf8"),
+  writeFile(resolve(distRoot, "api/instagram.json"), JSON.stringify(instagramPosts) + "\n", "utf8"),
   writeFile(resolve(distRoot, ".nojekyll"), ""),
 ]);
 console.log(`Built GitHub Pages snapshot in ${distRoot}`);

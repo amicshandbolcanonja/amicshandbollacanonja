@@ -8,12 +8,16 @@ const SEASON_ID = "2627";
 const CACHE_TTL_SECONDS = 300;
 const SOURCE_ORIGIN = "https://resultadosbalonmano.isquad.es";
 const BADGE_URL = "https://balonmano.isquad.es/images/afiliacion_clubs/100639/square_73326d626f6b37737763.jpg";
+const INSTAGRAM_EMBED_URL = "https://www.instagram.com/amicshandbolcanonja/embed/";
+const INSTAGRAM_CACHE_TTL_SECONDS = 900;
 
 // Cloudflare's default Cache API is disabled in Sites Workers. Keep the latest
 // successful sync in this isolate's memory and share concurrent refreshes.
 let cachedData = null;
 let cachedAt = 0;
 let inFlightRefresh = null;
+let cachedInstagramPosts = null;
+let instagramCachedAt = 0;
 
 const TEAM_CONFIG = [
   { id: "222243", key: "senior-masculi", category: "3077", competition: "211808", tournament: "1038562", nameCa: "Sènior masculí", nameEs: "Sénior masculino", competitionCa: "Segona Catalana · Grup B", competitionEs: "Segunda Catalana · Grupo B" },
@@ -117,20 +121,28 @@ function parseStaff(html) {
   return staff;
 }
 
-function parseTopScorers(html, team) {
+function parseTeamScorers(html, team) {
   const table = html.match(/<table\b[^>]*\btabla_goleadores\b[^>]*>[\s\S]*?<\/table>/i)?.[0] ?? "";
   const rows = [...table.matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)].map((match) => match[1]);
-  const scorers = rows.flatMap((row) => {
+  const scorersByName = new Map();
+  for (const row of rows) {
     const teamId = row.match(/<a\b[^>]*href=["'][^"']*\bid_equipo=(\d+)/i)?.[1] ?? "";
-    if (teamId !== team.id) return [];
+    if (teamId !== team.id) continue;
     const cells = [...row.matchAll(/<td\b[^>]*>([\s\S]*?)<\/td>/gi)].map((match) => match[1]);
     const name = textFromHtml(cells[1] ?? "");
     const goals = Number(textFromHtml(cells[3] ?? ""));
-    return name && Number.isFinite(goals) ? [{ name, goals }] : [];
-  });
+    if (!name || !Number.isFinite(goals)) continue;
+    const key = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    const previous = scorersByName.get(key);
+    if (!previous || goals > previous.goals) scorersByName.set(key, { name, goals });
+  }
+  return [...scorersByName.values()];
+}
+
+function parseTopScorers(scorers) {
   if (!scorers.length) return [];
   const maximumGoals = Math.max(...scorers.map((scorer) => scorer.goals));
-  return [...new Set(scorers.filter((scorer) => scorer.goals === maximumGoals).map((scorer) => scorer.name))];
+  return scorers.filter((scorer) => scorer.goals === maximumGoals).map((scorer) => scorer.name);
 }
 
 function parseDate(value) {
@@ -306,13 +318,16 @@ async function buildData() {
     const rosterHtml = rosterResult.status === "fulfilled" ? rosterResult.value : "";
     const calendarFixtures = scheduleResult.status === "fulfilled" ? scheduleResult.value : [];
     const scorersHtml = scorersResult.status === "fulfilled" ? scorersResult.value : "";
+    const scorers = scorersHtml ? parseTeamScorers(scorersHtml, team) : [];
     return {
       ...team,
       clubLabel: sourceRow?.clubLabel ?? "Amics H.C.",
       categoryLabel: sourceRow?.categoryLabel ?? "",
       players: rosterHtml ? parsePlayers(rosterHtml) : [],
       staff: rosterHtml ? parseStaff(rosterHtml) : [],
-      topScorers: scorersHtml ? parseTopScorers(scorersHtml, team) : [],
+      scorers,
+      scorersAvailable: hasScorersPage && /tabla_goleadores/i.test(scorersHtml),
+      topScorers: parseTopScorers(scorers),
       scorersUrl: hasScorersPage ? statisticsUrlForTeam(team) : "",
       fixtures: rosterHtml ? parseTeamFixtures(rosterHtml, team) : [],
       calendarFixtures,
@@ -366,6 +381,30 @@ async function getData(forceRefresh) {
   return refresh;
 }
 
+function parseInstagramPosts(html) {
+  const mediaIndex = html.indexOf("graphql_media");
+  if (mediaIndex < 0) return [];
+  const media = html.slice(mediaIndex, mediaIndex + 50000).replaceAll(String.fromCharCode(92) + '"', '"');
+  const shortcodes = [...media.matchAll(/"shortcode":"([A-Za-z0-9_-]+)"/g)].map((match) => match[1]);
+  return [...new Set(shortcodes)].slice(0, 3).map((shortcode) => `https://www.instagram.com/p/${shortcode}/`);
+}
+
+async function getInstagramPosts() {
+  if (cachedInstagramPosts && Date.now() - instagramCachedAt < INSTAGRAM_CACHE_TTL_SECONDS * 1000) {
+    return cachedInstagramPosts;
+  }
+  const response = await fetch(INSTAGRAM_EMBED_URL, {
+    headers: { accept: "text/html,application/xhtml+xml" },
+    signal: AbortSignal.timeout(15000),
+  });
+  if (!response.ok) throw new Error(`Instagram returned ${response.status}`);
+  const posts = parseInstagramPosts(await response.text());
+  if (!posts.length) throw new Error("Instagram did not return any posts");
+  cachedInstagramPosts = { posts };
+  instagramCachedAt = Date.now();
+  return cachedInstagramPosts;
+}
+
 export default {
   async fetch(request, env, ctx) {
     void env;
@@ -380,6 +419,15 @@ export default {
       } catch (error) {
         console.error("iSquad sync failed", error instanceof Error ? error.message : error);
         return jsonResponse({ error: "No s'han pogut consultar ara les dades d'iSquad." }, 502);
+      }
+    }
+
+    if (url.pathname === "/api/instagram.json") {
+      try {
+        return jsonResponse(await getInstagramPosts());
+      } catch (error) {
+        console.error("Instagram sync failed", error instanceof Error ? error.message : error);
+        return jsonResponse({ posts: [] }, 502);
       }
     }
 

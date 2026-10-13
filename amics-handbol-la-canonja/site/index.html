@@ -131,6 +131,15 @@
     .fixture-status[data-state="suspended"] { background: #f0eff5; color: #59586e; }
     .fixture-status[data-state="played"] { background: var(--blue); color: white; }
     .fixture-card.is-next { border-color: var(--violet); box-shadow: inset 3px 0 0 var(--violet); }
+    .fixture-card.is-selected { border-color: var(--blue); box-shadow: inset 4px 0 0 var(--blue), 0 5px 16px rgba(52,57,183,.1); }
+    .round-navigation { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 0 0 18px; padding: 12px; border: 1px solid var(--line); border-radius: 14px; background: #f8f7ff; }
+    .round-control { display: grid; width: 42px; height: 42px; flex: 0 0 auto; place-items: center; border: 1px solid var(--line); border-radius: 50%; background: var(--white); color: var(--blue); cursor: pointer; }
+    .round-control svg { width: 18px; height: 18px; }
+    .round-control:disabled { opacity: .4; cursor: default; }
+    .round-indicator { display: grid; min-width: 145px; gap: 3px; text-align: center; }
+    .round-indicator strong { font-size: 15px; font-weight: 850; letter-spacing: -.025em; }
+    .round-indicator span { color: var(--muted); font-size: 10px; font-weight: 750; }
+    .round-indicator .round-current-label { color: var(--blue); }
     .calendar-note { margin: 12px 0 0; color: var(--muted); font-size: 11px; line-height: 1.55; }
     .calendar-pending { display: grid; min-height: 260px; place-items: center; padding: 28px; border: 1px dashed rgba(25,24,54,.24); border-radius: 14px; background: #f8f7f2; text-align: center; }
     .calendar-pending strong { display: block; margin-bottom: 9px; font-size: 20px; letter-spacing: -.04em; }
@@ -151,13 +160,26 @@
     .instagram-account svg { width: 19px; height: 19px; flex: 0 0 auto; }
     .instagram-profile-link { flex: 0 0 auto; color: var(--blue); text-decoration-thickness: 1px; text-underline-offset: 4px; }
     .instagram-post-frame { display: grid; min-height: 330px; place-items: center; overflow-x: auto; margin-top: 16px; border-radius: 14px; background: #f8f7ff; }
+    .instagram-gallery { display: none; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 18px; }
+    .instagram-gallery:empty { display: none; }
+    .instagram-gallery-item { display: grid; min-width: 0; min-height: 360px; place-items: start center; overflow: hidden; border-radius: 14px; background: #f8f7ff; }
+    .instagram-gallery-item blockquote.instagram-media { width: 100% !important; max-width: 400px !important; min-width: 280px !important; margin: 0 auto !important; }
+    .instagram-gallery .instagram-post-status { min-height: 360px; display: grid; place-items: center; }
     .instagram-post-status { max-width: 330px; margin: 0; padding: 26px; color: var(--muted); font-size: 13px; line-height: 1.7; text-align: center; }
     .instagram-post-frame blockquote.instagram-media { width: 100% !important; max-width: 540px !important; min-width: 280px !important; margin: 0 auto !important; }
     .instagram-latest-link { display: flex; justify-content: center; margin: 14px auto 2px; color: var(--blue); font-size: 13px; font-weight: 800; text-underline-offset: 4px; }
     @media (min-width: 851px) {
-      .social-section .instagram-card { width: 100%; max-width: 410px; justify-self: end; }
-      .social-section .instagram-post-frame { overflow: visible; }
-      .social-section .instagram-post-frame blockquote.instagram-media { max-width: 372px !important; }
+      .social-section { display: block; }
+      .social-copy { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(240px, .9fr); gap: 0 42px; align-items: end; }
+      .social-copy .section-label { grid-column: 1 / -1; }
+      .social-copy h2 { grid-column: 1; grid-row: 2; margin-bottom: 0; font-size: clamp(40px, 5vw, 64px); font-weight: 820; letter-spacing: -.075em; line-height: .98; }
+      .social-copy > p:not(.section-label) { grid-column: 2; grid-row: 2; align-self: end; margin: 0 0 8px; }
+      .social-section .instagram-card { width: 100%; max-width: none; margin-top: 28px; }
+      .social-section .instagram-post-frame { display: none; }
+      .social-section .instagram-gallery { display: grid; }
+    }
+    @media (min-width: 851px) and (max-width: 1100px) {
+      .instagram-gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
     .visit { padding-top: 20px; }
     .visit-inner { display: grid; grid-template-columns: 1.1fr .9fr; min-height: 390px; overflow: hidden; border-radius: 8px 30px 8px 30px; background: var(--lilac); }
@@ -183,8 +205,11 @@
     .reveal { animation: rise .65s both; }
     @keyframes rise { from { opacity: 0; transform: translateY(13px); } to { opacity: 1; transform: translateY(0); } }
     @media (max-width: 850px) {
-      .nav { gap: 15px; }
-      .nav a { font-size: 11px; }
+      .menu-toggle { display: inline-flex; }
+      .nav { position: absolute; top: calc(100% + 8px); right: 0; left: 0; display: none; flex-direction: column; align-items: stretch; gap: 0; padding: 8px 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--white); box-shadow: 0 16px 40px rgba(25,24,54,.12); }
+      .nav.is-open { display: flex; }
+      .nav a { min-height: 44px; padding: 11px 4px; border-bottom: 1px solid var(--line); font-size: 13px; }
+      .nav a:last-child { border-bottom: 0; }
       .topbar .topbar-link { display: none; }
       .hero { min-height: 520px; grid-template-columns: 1fr .8fr; }
       .hero-art { min-height: 360px; }
@@ -193,6 +218,9 @@
       .team-grid { gap: 9px; }
       .team-card { min-height: 230px; padding: 18px; }
       .team-card h3 { font-size: 22px; }
+      .social-section { grid-template-columns: 1fr; gap: 27px; padding-top: 0; }
+      .instagram-card { padding: 14px; }
+      .instagram-post-frame { min-height: 330px; }
     }
     @media (max-width: 650px) {
       .shell { width: min(100% - 34px, 500px); }
@@ -261,8 +289,11 @@
     .roster-heading span { color: var(--muted); font-size: 10px; font-weight: 750; }
     .roster-heading a { color: var(--blue); text-underline-offset: 3px; }
     .roster-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; margin: 0; padding: 0; list-style: none; }
-    .roster-player { min-height: 41px; padding: 11px 13px; border: 1px solid rgba(25,24,54,.1); border-radius: 9px; background: #f8f7ff; color: var(--ink); font-size: 11px; font-weight: 700; line-height: 1.4; }
-    .roster-player.is-top-scorer { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-color: var(--violet); background: #f0efff; }
+    .roster-player { display: flex; min-width: 0; min-height: 41px; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 13px; border: 1px solid rgba(25,24,54,.1); border-radius: 9px; background: #f8f7ff; color: var(--ink); font-size: 11px; font-weight: 700; line-height: 1.4; }
+    .roster-player-name { min-width: 0; }
+    .roster-player-meta { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 7px; }
+    .player-goals { color: var(--muted); font-size: 9px; font-weight: 750; white-space: nowrap; }
+    .roster-player.is-top-scorer { border-color: var(--violet); background: #f0efff; }
     .top-scorer-emoji { flex: 0 0 auto; font-size: 15px; line-height: 1; }
     .staff-section { margin-top: 24px; padding-top: 22px; border-top: 1px solid var(--line); }
     .staff-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; margin: 0; padding: 0; list-style: none; }
@@ -275,18 +306,20 @@
     @media (max-width: 520px) { .sync-toolbar { align-items: flex-start; } .roster-grid, .staff-grid { grid-template-columns: 1fr; } .fixture-list { grid-template-columns: 1fr; } }
 
     @media (max-width: 650px) {
-      .shell { width: min(calc(100% - 28px), 500px); }
-      .topbar { position: sticky; top: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; min-height: 0; gap: 0; padding-top: 6px; background: rgba(244,242,235,.98); backdrop-filter: blur(12px); }
-      .brand { grid-column: 1; grid-row: 1; min-width: 0; gap: 9px; }
+      .shell { width: min(calc(100% - 32px), 500px); }
+      .topbar { position: sticky; top: 0; display: flex; min-height: 64px; gap: 12px; padding-block: 8px; background: rgba(244,242,235,.98); backdrop-filter: blur(12px); }
+      .brand { min-width: 0; gap: 9px; }
       .brand-mark { width: 36px; height: 36px; flex-basis: 36px; }
       .brand-name { font-size: 11px; white-space: nowrap; }
       .brand-name span { font-size: 8px; letter-spacing: .08em; }
-      .top-actions { grid-column: 2; grid-row: 1; gap: 8px; }
+      .top-actions { margin-left: auto; gap: 9px; }
       .language { padding: 2px; }
       .language button { min-width: 29px; padding: 6px 7px; }
-      .menu-toggle { display: none; }
-      .nav, .nav.is-open { position: static; grid-column: 1 / -1; grid-row: 2; display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px; min-width: 0; overflow: visible; margin: 0; padding: 8px 0 10px; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
-      .nav a, .nav a:last-child { flex: 0 0 auto; padding: 7px 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--white); font-size: 10px; white-space: nowrap; }
+      .menu-toggle { display: inline-flex; width: 42px; height: 42px; flex: 0 0 auto; border-radius: 12px; }
+      .nav, .nav.is-open { position: absolute; top: calc(100% + 6px); right: 0; left: 0; display: none; flex-direction: column; align-items: stretch; gap: 0; min-width: 0; margin: 0; padding: 8px 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--white); box-shadow: 0 16px 40px rgba(25,24,54,.12); }
+      .nav.is-open { display: flex; }
+      .nav a, .nav a:last-child { display: flex; min-height: 46px; align-items: center; padding: 11px 4px; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: transparent; font-size: 13px; white-space: normal; }
+      .nav a:last-child { border-bottom: 0; }
 
       .hero { padding-block: 38px 28px; }
       .eyebrow { margin-bottom: 14px; font-size: 8px; letter-spacing: .13em; }
@@ -302,7 +335,7 @@
       .hero-sticker span { font-size: 17px; }
       .art-caption { left: 2%; font-size: 7px; }
 
-      .section { padding-block: 58px; }
+      .section { padding-block: 64px; }
       .about { gap: 8px; }
       .about h2, .teams-heading h2, .match-copy h2, .join-copy h2 { font-size: clamp(39px, 11.5vw, 54px); }
       .about-copy { padding-top: 7px; }
@@ -313,46 +346,49 @@
       .teams-section { padding-block: 56px 44px; }
       .teams-heading { margin-bottom: 18px; }
       .teams-heading > p { margin-top: 12px; font-size: 12px; line-height: 1.55; }
-      .team-grid.team-tabs { display: flex; gap: 9px; overflow-x: auto; margin-inline: -14px; padding: 6px 14px 13px; scroll-snap-type: x mandatory; scrollbar-color: rgba(255,255,255,.55) rgba(255,255,255,.12); scrollbar-width: thin; }
-      .team-tab { flex: 0 0 min(78vw, 270px); width: min(78vw, 270px); min-height: 130px; padding: 14px 15px; scroll-snap-align: start; }
+      .team-grid.team-tabs { display: flex; gap: 12px; overflow-x: auto; margin-inline: -16px; padding: 8px 16px 15px; scroll-snap-type: x mandatory; scrollbar-color: rgba(255,255,255,.55) rgba(255,255,255,.12); scrollbar-width: thin; }
+      .team-tab { flex: 0 0 min(80vw, 290px); width: min(80vw, 290px); min-height: 140px; padding: 16px; scroll-snap-align: start; }
       .team-card::after { right: -29px; bottom: -42px; width: 112px; }
       .team-tab .team-index { font-size: 8px; }
       .team-tab .team-index span:last-child { width: 26px; height: 26px; font-size: 13px; }
       .team-tab .team-card-copy h3 { margin-bottom: 5px; font-size: 20px; }
       .team-tab .team-card-copy p { font-size: 10px; line-height: 1.4; }
       .team-tab[aria-selected="true"] { outline-offset: 2px; }
-      #inici, #club, #equips, #actualitat, #visita, .schedules, .schedule-panel { scroll-margin-top: 126px; }
-      .schedules { padding-block: 0 36px; }
-      .sync-toolbar { align-items: center; gap: 10px; margin-bottom: 12px; }
-      .sync-toolbar p { max-width: 245px; font-size: 10px; line-height: 1.4; }
-      .sync-toolbar .round-link { min-height: 36px; padding-inline: 11px; font-size: 10px; }
-      .schedule-panel { padding: 16px 13px; border-radius: 8px 20px 8px 20px; }
-      .schedule-heading { align-items: flex-start; flex-direction: row; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; }
+      #inici, #club, #equips, #actualitat, #visita, .schedules, .schedule-panel { scroll-margin-top: 88px; }
+      .schedules { padding-block: 0 42px; }
+      .sync-toolbar { align-items: flex-start; gap: 12px; margin-bottom: 15px; }
+      .sync-toolbar p { max-width: 260px; font-size: 10px; line-height: 1.5; }
+      .sync-toolbar .round-link { min-height: 40px; padding-inline: 13px; font-size: 10px; }
+      .schedule-panel { padding: 19px 16px; border-radius: 8px 22px 8px 22px; }
+      .schedule-heading { align-items: flex-start; flex-direction: row; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
       .schedule-heading > div { min-width: 0; flex: 1 1 190px; }
       .schedule-heading .section-label { margin-bottom: 8px; font-size: 8px; }
       .schedule-heading h3 { font-size: clamp(23px, 7vw, 30px); line-height: 1.05; overflow-wrap: anywhere; }
       .schedule-heading p { font-size: 10px; }
-      .schedule-stamp { padding: 7px 9px; font-size: 8px; }
-      .schedule-stamp-desktop { display: none; }
-      .schedule-stamp-mobile { display: inline; }
-      .fixture-list { max-height: none; overflow: visible; padding: 0; border: 0; background: transparent; gap: 7px; }
-      .fixture-list .fixture-card:not(.is-current) { display: none; }
-      .fixture-card { grid-template-columns: minmax(0, 1fr); gap: 9px; min-height: 0; padding: 11px; }
+      .schedule-stamp { display: none; }
+      .round-navigation { justify-content: space-between; gap: 8px; margin-bottom: 16px; padding: 11px; }
+      .round-control { width: 44px; height: 44px; }
+      .round-indicator { min-width: 130px; }
+      .round-indicator strong { font-size: 16px; }
+      .round-indicator span { font-size: 10px; }
+      .fixture-list { max-height: none; overflow: visible; padding: 0; border: 0; background: transparent; gap: 8px; }
+      .fixture-list .fixture-card:not(.is-selected) { display: none; }
+      .fixture-card { grid-template-columns: minmax(0, 1fr); gap: 11px; min-height: 0; padding: 14px; }
       .fixture-day { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
       .fixture-round, .fixture-date { font-size: 9px; }
-      .fixture-game { grid-template-columns: minmax(0, 1fr) 46px minmax(0, 1fr); gap: 6px; }
-      .fixture-team { font-size: 10px; line-height: 1.25; }
-      .fixture-result { min-height: 27px; font-size: 9px; }
-      .fixture-meta { gap: 5px 7px; margin-top: 7px; font-size: 8px; }
+      .fixture-game { grid-template-columns: minmax(0, 1fr) 48px minmax(0, 1fr); gap: 8px; }
+      .fixture-team { font-size: 11px; line-height: 1.35; }
+      .fixture-result { min-height: 30px; font-size: 10px; }
+      .fixture-meta { gap: 7px 9px; margin-top: 9px; font-size: 9px; }
       .fixture-status { padding: 4px 6px; }
       .calendar-note { font-size: 10px; }
 
-      .roster-section { margin-top: 23px; padding-top: 18px; }
-      .roster-heading { align-items: center; gap: 7px; margin-bottom: 10px; }
-      .roster-heading h4 { font-size: 17px; }
-      .roster-heading span { font-size: 9px; text-align: right; }
-      .roster-grid, .staff-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
-      .roster-player, .staff-member { padding: 9px 10px; font-size: 10px; }
+      .roster-section { margin-top: 26px; padding-top: 21px; }
+      .roster-heading { align-items: center; gap: 10px; margin-bottom: 13px; }
+      .roster-heading h4 { font-size: 18px; }
+      .roster-heading span { font-size: 9px; line-height: 1.5; text-align: right; }
+      .roster-grid, .staff-grid { grid-template-columns: 1fr; gap: 8px; }
+      .roster-player, .staff-member { padding: 11px 12px; font-size: 11px; }
       .staff-section { margin-top: 19px; padding-top: 17px; }
       .staff-member strong { font-size: 10px; }
       .staff-member span { font-size: 9px; }
@@ -392,7 +428,7 @@
       .brand-name span { font-size: 7px; }
       .top-actions { gap: 6px; }
       .language button { min-width: 26px; padding-inline: 5px; }
-      .menu-toggle { width: 34px; height: 34px; }
+      .menu-toggle { width: 40px; height: 40px; }
       .team-tab { flex-basis: min(80vw, 270px); width: min(80vw, 270px); }
       .team-grid.team-tabs { margin-inline: -12px; padding-inline: 12px; }
       .schedule-panel { padding-inline: 11px; }
@@ -501,6 +537,7 @@
         <div class="instagram-post-frame" id="instagram-post" role="region" aria-label="Última publicació d’Instagram" data-ca-label="Última publicació d’Instagram" data-es-label="Última publicación de Instagram">
           <p class="instagram-post-status" id="instagram-status" data-ca="Carregant l’última publicació…" data-es="Cargando la última publicación…">Carregant l’última publicació…</p>
         </div>
+        <div class="instagram-gallery" id="instagram-gallery" role="region" aria-label="Publicaciones recientes de Instagram" data-ca-label="Les tres publicacions més recents d’Instagram" data-es-label="Las tres publicaciones más recientes de Instagram"></div>
         <a class="instagram-latest-link" id="instagram-latest-link" href="https://www.instagram.com/amicshandbolcanonja/" target="_blank" rel="noopener noreferrer" data-ca="Veure el perfil ↗" data-es="Ver el perfil ↗">Veure el perfil ↗</a>
       </div>
     </section>
@@ -544,17 +581,19 @@
       const menuButton = document.getElementById("menu-toggle");
       const siteNav = document.getElementById("primary-nav");
       const instagramPostNode = document.getElementById("instagram-post");
+      const instagramGalleryNode = document.getElementById("instagram-gallery");
       const instagramLatestLink = document.getElementById("instagram-latest-link");
       const instagramProfileUrl = "https://www.instagram.com/amicshandbolcanonja/";
       let language = "ca";
       let siteData = null;
       let activeTeamKey = "";
+      const selectedRounds = {};
       let lastLoad = 0;
       let loading = false;
       let instagramStatusKey = "loading";
       let instagramEmbedReady = false;
       let instagramEmbedPromise = null;
-      let instagramPostUrl = instagramProfileUrl;
+      let instagramPostUrls = [instagramProfileUrl];
       let instagramPostIsLatest = false;
 
       const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[character]));
@@ -610,7 +649,7 @@
       }
 
       function updateInstagramLink() {
-        instagramLatestLink.href = instagramPostUrl;
+        instagramLatestLink.href = instagramPostUrls[0] || instagramProfileUrl;
         instagramLatestLink.textContent = instagramPostIsLatest
           ? (language === "ca" ? "Veure la publicació ↗" : "Ver la publicación ↗")
           : (language === "ca" ? "Veure el perfil ↗" : "Ver el perfil ↗");
@@ -625,7 +664,44 @@
         status.className = "instagram-post-status";
         status.id = "instagram-status";
         status.textContent = messages[instagramStatusKey][language === "ca" ? 0 : 1];
-        instagramPostNode.replaceChildren(status);
+        if (window.matchMedia("(min-width: 851px)").matches) {
+          instagramPostNode.replaceChildren();
+          instagramGalleryNode.replaceChildren(status);
+        } else {
+          instagramGalleryNode.replaceChildren();
+          instagramPostNode.replaceChildren(status);
+        }
+      }
+
+      function createInstagramEmbed(url) {
+        const embed = document.createElement("blockquote");
+        embed.className = "instagram-media";
+        embed.setAttribute("data-instgrm-permalink", url);
+        embed.setAttribute("data-instgrm-version", "14");
+        embed.style.width = "100%";
+        const link = document.createElement("a");
+        link.href = url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = language === "ca" ? "Veure la publicació a Instagram" : "Ver la publicación en Instagram";
+        embed.append(link);
+        return embed;
+      }
+
+      function renderInstagramEmbeds() {
+        if (window.matchMedia("(min-width: 851px)").matches) {
+          instagramPostNode.replaceChildren();
+          const items = instagramPostUrls.slice(0, 3).map((url) => {
+            const item = document.createElement("article");
+            item.className = "instagram-gallery-item";
+            item.append(createInstagramEmbed(url));
+            return item;
+          });
+          instagramGalleryNode.replaceChildren(...items);
+        } else {
+          instagramGalleryNode.replaceChildren();
+          instagramPostNode.replaceChildren(createInstagramEmbed(instagramPostUrls[0] || instagramProfileUrl));
+        }
       }
 
       function loadInstagramEmbedScript() {
@@ -647,32 +723,23 @@
           try {
             const response = await fetch("./api/instagram.json", { cache: "no-store" });
             if (response.ok) {
-              const latestPost = await response.json();
-              const candidate = new URL(latestPost.permalink);
-              if (candidate.hostname === "www.instagram.com" && /^\/(p|reel|tv)\/[A-Za-z0-9_-]+\/?$/.test(candidate.pathname)) {
-                instagramPostUrl = candidate.href;
-                instagramPostIsLatest = true;
-              }
+              const payload = await response.json();
+              const candidates = Array.isArray(payload.posts) ? payload.posts : payload.permalink ? [payload.permalink] : [];
+              instagramPostUrls = [...new Set(candidates.flatMap((permalink) => {
+                try {
+                  const candidate = new URL(permalink);
+                  return candidate.hostname === "www.instagram.com" && /^\/(p|reel|tv)\/[A-Za-z0-9_-]+\/?$/.test(candidate.pathname) ? [candidate.href] : [];
+                } catch { return []; }
+              }))].slice(0, 3);
+              instagramPostIsLatest = instagramPostUrls.length > 0;
             }
           } catch {}
+          if (!instagramPostUrls.length) instagramPostUrls = [instagramProfileUrl];
           updateInstagramLink();
-
-          const embed = document.createElement("blockquote");
-          embed.className = "instagram-media";
-          embed.setAttribute("data-instgrm-permalink", instagramPostUrl);
-          embed.setAttribute("data-instgrm-version", "14");
-          embed.style.width = "100%";
-          const link = document.createElement("a");
-          link.href = instagramPostUrl;
-          link.target = "_blank";
-          link.rel = "noopener noreferrer";
-          link.textContent = instagramPostIsLatest
-            ? (language === "ca" ? "Veure la publicació a Instagram" : "Ver la publicación en Instagram")
-            : (language === "ca" ? "Veure el perfil a Instagram" : "Ver el perfil en Instagram");
-          embed.append(link);
-          instagramPostNode.replaceChildren(embed);
+          renderInstagramEmbeds();
 
           await loadInstagramEmbedScript();
+          renderInstagramEmbeds();
           window.instgrm?.Embeds?.process();
           instagramEmbedReady = true;
         } catch {
@@ -681,7 +748,16 @@
         }
       }
 
-      function fixtureMarkup(team, fixture, nextRound, currentRound) {
+      const instagramDesktopLayout = window.matchMedia("(min-width: 851px)");
+      const refreshInstagramLayout = () => {
+        if (!instagramEmbedReady) return;
+        renderInstagramEmbeds();
+        window.instgrm?.Embeds?.process();
+      };
+      if (instagramDesktopLayout.addEventListener) instagramDesktopLayout.addEventListener("change", refreshInstagramLayout);
+      else instagramDesktopLayout.addListener?.(refreshInstagramLayout);
+
+      function fixtureMarkup(team, fixture, nextRound, currentRound, selectedRound) {
         const ownHome = fixture.homeId === team.id;
         const ownAway = fixture.awayId === team.id;
         const homeName = ownHome ? "Amics H.C." : fixture.homeName;
@@ -692,7 +768,7 @@
         const venue = fixture.venue ? '<span>' + escapeHtml(fixture.venue) + '</span>' : "";
         const round = String(fixture.round).padStart(2, "0");
         const ariaLabel = (language === "ca" ? "Jornada " : "Jornada ") + round + ": " + escapeHtml(homeName) + " contra " + escapeHtml(awayName);
-        return '<article class="fixture-card' + (fixture.round === nextRound ? ' is-next' : '') + (fixture.round === currentRound ? ' is-current' : '') + '" role="listitem" aria-label="' + ariaLabel + '">' +
+        return '<article class="fixture-card' + (fixture.round === nextRound ? ' is-next' : '') + (fixture.round === currentRound ? ' is-current' : '') + (fixture.round === selectedRound ? ' is-selected' : '') + '" data-round="' + fixture.round + '" role="listitem" aria-label="' + ariaLabel + '">' +
           '<div class="fixture-day"><span class="fixture-round">Jornada ' + round + '</span><time class="fixture-date"' + (fixture.date ? ' datetime="' + escapeHtml(fixture.date) + '"' : '') + '>' + escapeHtml(formatDate(fixture.date)) + '</time></div>' +
           '<div class="fixture-main"><div class="fixture-game"><span class="fixture-team' + (ownHome ? ' is-amic' : '') + '">' + escapeHtml(homeName) + '</span><span class="fixture-result">' + escapeHtml(result) + '</span><span class="fixture-team' + (ownAway ? ' is-amic' : '') + '">' + escapeHtml(awayName) + '</span></div>' +
           '<div class="fixture-meta"><span class="fixture-status" data-state="' + escapeHtml(fixture.state) + '">' + escapeHtml(statusLabel) + '</span><span>' + (ownHome ? words().home : words().away) + '</span><span>' + timeLabel + '</span>' + venue + '</div></div></article>';
@@ -735,7 +811,11 @@
           const next = nextFixture?.round;
           const currentFixture = nextFixture || fixtures.find((fixture) => fixture.state === "pending") || [...fixtures].reverse().find((fixture) => fixture.state === "played") || fixtures[0];
           const currentRound = currentFixture?.round;
+          if (!fixtures.some((fixture) => fixture.round === selectedRounds[team.key])) selectedRounds[team.key] = currentRound;
+          const selectedRound = selectedRounds[team.key];
+          const selectedRoundIndex = fixtures.findIndex((fixture) => fixture.round === selectedRound);
           const topScorers = new Set((team.topScorers || []).map(normalizePlayerName));
+          const goalsByPlayer = new Map((team.scorers || []).map((scorer) => [normalizePlayerName(scorer.name), Number(scorer.goals)]));
           const topScorerLabel = language === "ca" ? "Màxim golejador" : "Máximo goleador";
           const scorerSourceLink = team.scorersUrl
             ? ' · <a href="' + escapeHtml(team.scorersUrl) + '" target="_blank" rel="noopener noreferrer">' + (language === "ca" ? "Golejadors FCH" : "Goleadores FCH") + ' ↗</a>'
@@ -743,28 +823,56 @@
           const staffTitle = language === "ca" ? "Cos tècnic" : "Cuerpo técnico";
           const staffCount = language === "ca" ? "persones" : "personas";
           const staffEmpty = language === "ca" ? "La federació encara no ha publicat el cos tècnic." : "La federación todavía no ha publicado el cuerpo técnico.";
+          const roundDescription = selectedRound === currentRound
+            ? (language === "ca" ? "Jornada actual" : "Jornada actual")
+            : (language === "ca" ? "Jornada actual: " : "Jornada actual: ") + String(currentRound).padStart(2, "0");
+          const roundNavigation = fixtures.length
+            ? '<div class="round-navigation" aria-label="' + (language === "ca" ? "Canvi de jornada" : "Cambio de jornada") + '">' +
+              '<button class="round-control" type="button" data-round-control data-team-key="' + escapeHtml(team.key) + '" data-round-direction="-1" aria-label="' + (language === "ca" ? "Jornada anterior" : "Jornada anterior") + '"' + (selectedRoundIndex <= 0 ? ' disabled' : '') + '><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m12.5 4.5-5.5 5.5 5.5 5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>' +
+              '<span class="round-indicator" aria-live="polite"><strong>Jornada ' + String(selectedRound).padStart(2, "0") + '</strong><span class="' + (selectedRound === currentRound ? 'round-current-label' : '') + '">' + roundDescription + '</span></span>' +
+              '<button class="round-control" type="button" data-round-control data-team-key="' + escapeHtml(team.key) + '" data-round-direction="1" aria-label="' + (language === "ca" ? "Jornada següent" : "Jornada siguiente") + '"' + (selectedRoundIndex < 0 || selectedRoundIndex >= fixtures.length - 1 ? ' disabled' : '') + '><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m7.5 4.5 5.5 5.5-5.5 5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>'
+            : "";
           const calendar = fixtures.length
-            ? '<div class="fixture-list" role="list" aria-label="' + escapeHtml(language === "ca" ? "Partits de " + title : "Partidos de " + title) + '">' + fixtures.map((fixture) => fixtureMarkup(team, fixture, next, currentRound)).join("") + '</div>'
+            ? '<div class="fixture-list" role="list" aria-label="' + escapeHtml(language === "ca" ? "Partits de " + title : "Partidos de " + title) + '">' + fixtures.map((fixture) => fixtureMarkup(team, fixture, next, currentRound, selectedRound)).join("") + '</div>'
             : '<div class="fixture-empty"><strong>' + escapeHtml(words().noFixtures) + '</strong>' + escapeHtml(words().noFixturesText) + '</div>';
           const players = team.players?.length
             ? '<ol class="roster-grid">' + team.players.map((player) => {
               const isTopScorer = team.key === "senior-masculi" && topScorers.has(normalizePlayerName(player));
+              const goals = goalsByPlayer.get(normalizePlayerName(player));
+              const goalsLabel = language === "ca" ? (goals === 1 ? "gol" : "gols") : (goals === 1 ? "gol" : "goles");
+              const showGoals = team.key === "senior-masculi" && team.scorersAvailable;
               const badge = isTopScorer
                 ? '<span class="top-scorer-emoji" role="img" aria-label="' + escapeHtml(topScorerLabel) + '" title="' + escapeHtml(topScorerLabel) + '">⚽</span>'
                 : "";
-              return '<li class="roster-player' + (isTopScorer ? ' is-top-scorer' : '') + '">' + escapeHtml(player) + badge + '</li>';
+              const goalsMarkup = showGoals ? '<small class="player-goals">' + (goals ?? 0) + ' ' + goalsLabel + '</small>' : "";
+              return '<li class="roster-player' + (isTopScorer ? ' is-top-scorer' : '') + '"><span class="roster-player-name">' + escapeHtml(player) + '</span><span class="roster-player-meta">' + goalsMarkup + badge + '</span></li>';
             }).join("") + '</ol>'
             : '<p class="calendar-note">' + escapeHtml(words().noPlayers) + '</p>';
           const staff = team.staff?.length
             ? '<ul class="staff-grid" aria-label="' + escapeHtml(staffTitle) + '">' + team.staff.map((member) => '<li class="staff-member"><strong>' + escapeHtml(member.name) + '</strong><span>' + escapeHtml(staffRoleLabel(member.role)) + '</span></li>').join("") + '</ul>'
             : '<p class="calendar-note">' + escapeHtml(staffEmpty) + '</p>';
           return '<section class="schedule-panel" role="tabpanel" id="schedule-' + escapeHtml(team.key) + '" aria-labelledby="tab-' + escapeHtml(team.key) + '"' + (active ? '' : ' hidden') + '>' +
-            '<div class="schedule-heading"><div><p class="section-label">' + escapeHtml(words().calendar) + ' · ' + escapeHtml(siteData.season) + '</p><h3>' + escapeHtml(title) + '</h3><p>' + escapeHtml(competition) + '</p></div><span class="schedule-stamp"><span class="schedule-stamp-desktop">' + fixtures.length + ' ' + escapeHtml(words().fixtures) + '</span><span class="schedule-stamp-mobile">' + escapeHtml(currentRound ? "Jornada " + String(currentRound).padStart(2, "0") : "Jornada actual") + '</span></span></div>' +
-            calendar + '<p class="calendar-note">' + escapeHtml(words().update) + '</p>' +
+            '<div class="schedule-heading"><div><p class="section-label">' + escapeHtml(words().calendar) + ' · ' + escapeHtml(siteData.season) + '</p><h3>' + escapeHtml(title) + '</h3><p>' + escapeHtml(competition) + '</p></div><span class="schedule-stamp">' + fixtures.length + ' ' + escapeHtml(words().fixtures) + '</span></div>' +
+            roundNavigation + calendar + '<p class="calendar-note">' + escapeHtml(words().update) + '</p>' +
             '<div class="roster-section"><div class="roster-heading"><h4>' + escapeHtml(words().roster) + '</h4><span>' + (team.players?.length || 0) + ' ' + escapeHtml(words().players) + scorerSourceLink + '</span></div>' + players +
             '<div class="staff-section"><div class="roster-heading"><h4>' + escapeHtml(staffTitle) + '</h4><span>' + (team.staff?.length || 0) + ' ' + escapeHtml(staffCount) + '</span></div>' + staff + '</div></div></section>';
         });
         panelsNode.innerHTML = panels.join("");
+        panelsNode.querySelectorAll("[data-round-control]").forEach((button) => button.addEventListener("click", () => {
+          const teamKey = button.dataset.teamKey;
+          const direction = Number(button.dataset.roundDirection);
+          const team = siteData.teams.find((item) => item.key === teamKey);
+          const fixtures = team?.fixtures || [];
+          const index = fixtures.findIndex((fixture) => fixture.round === selectedRounds[teamKey]);
+          const nextFixture = fixtures[index + direction];
+          if (!nextFixture) return;
+          selectedRounds[teamKey] = nextFixture.round;
+          renderData();
+          const panel = panelsNode.querySelector('#schedule-' + CSS.escape(teamKey));
+          const nextControl = panel?.querySelector('[data-round-control][data-round-direction="' + direction + '"]:not(:disabled)') || panel?.querySelector('[data-round-control]:not(:disabled)');
+          nextControl?.focus({ preventScroll: true });
+          if (window.matchMedia("(min-width: 651px)").matches) panel?.querySelector('[data-round="' + nextFixture.round + '"]')?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }));
       }
 
       function renderData() {
