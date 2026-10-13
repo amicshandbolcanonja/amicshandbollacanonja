@@ -246,6 +246,50 @@ function parseCalendar(html, team) {
   return numberFixtures(fixtures);
 }
 
+function fixtureKey(fixture) {
+  return [fixture.homeId, fixture.awayId, fixture.date, fixture.homeScore, fixture.awayScore].join("|");
+}
+
+function parseFormalActas(html) {
+  const rows = [...html.matchAll(/<tr\b[^>]*>[\s\S]*?<\/tr>/gi)].map((match) => match[0]);
+  const actas = new Map();
+  for (const row of rows) {
+    const actaMatchId = row.match(/mostrarActaFormal\((\d+)\)/i)?.[1] ?? "";
+    if (!actaMatchId) continue;
+
+    const namesBlock = row.match(/<div\b[^>]*class=["']nombres-equipos["'][^>]*>([\s\S]*?)<\/div>/i)?.[1] ?? "";
+    const sides = [...namesBlock.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/gi)].map((match) => ({
+      id: match[1].match(/id_equipo=(\d+)/i)?.[1] ?? "",
+      name: textFromHtml(match[2]),
+    }));
+    if (sides.length < 2 || !sides[0].id || !sides[1].id) continue;
+
+    const scoreCell = row.match(/<td\b[^>]*class=["'][^"']*\bcol-marcador\b[^"']*["'][^>]*>([\s\S]*?)<\/td>/i)?.[1] ?? "";
+    const score = textFromHtml(scoreCell).match(/(\d+)\s*[-–]\s*(\d+)/);
+    if (!score) continue;
+
+    const state = (row.match(/data-estado=["']([^"']+)["']/i)?.[1] ?? textFromHtml(row)).toLowerCase();
+    if (/suspend|ajorn|aplaz|cancel|anul/.test(state)) continue;
+
+    const fixture = {
+      homeId: sides[0].id,
+      awayId: sides[1].id,
+      date: parseDate(row),
+      homeScore: score[1],
+      awayScore: score[2],
+    };
+    actas.set(fixtureKey(fixture), `${ACTA_ORIGIN}/acta_completa_pdf.php?id_partido=${actaMatchId}`);
+  }
+  return actas;
+}
+
+function addFormalActas(fixtures, actas) {
+  return fixtures.map((fixture) => ({
+    ...fixture,
+    actaUrl: fixture.actaUrl || actas.get(fixtureKey(fixture)) || "",
+  }));
+}
+
 async function mapLimit(items, limit, mapper) {
   const results = new Array(items.length);
   let cursor = 0;
@@ -320,16 +364,27 @@ async function fetchTeamCalendar(team) {
   // current groups, then select the calendar that actually contains this club.
   const firstHtml = await fetchHtml(calendarUrlForTeam(team, ""));
   const firstFixtures = parseCalendar(firstHtml, team);
-  if (firstFixtures.length) return firstFixtures;
-
   const { selected, ids } = parseTournamentOptions(firstHtml);
+  if (firstFixtures.length) return { fixtures: firstFixtures, tournamentId: selected || team.tournament };
+
   const candidates = [...new Set([...ids, team.tournament].filter((id) => id && id !== selected))];
   for (const tournament of candidates) {
     const html = await fetchHtml(calendarUrlForTeam(team, tournament));
     const fixtures = parseCalendar(html, team);
-    if (fixtures.length) return fixtures;
+    if (fixtures.length) return { fixtures, tournamentId: tournament };
   }
-  return [];
+  return { fixtures: [], tournamentId: selected || team.tournament };
+}
+
+async function fetchFormalActas(tournamentId) {
+  if (!tournamentId) return new Map();
+  try {
+    const params = new URLSearchParams({ id: tournamentId, seleccion: "0" });
+    const html = await fetchHtml(`${SOURCE_ORIGIN}/resultados_completos.php?${params}`);
+    return parseFormalActas(html);
+  } catch {
+    return new Map();
+  }
 }
 
 async function buildData() {
@@ -349,7 +404,9 @@ async function buildData() {
     const sourceRow = byId.get(team.id);
     const rosterHtml = rosterResult.status === "fulfilled" ? rosterResult.value : "";
     const roster = rosterHtml ? parseRoster(rosterHtml) : { players: [], guests: [] };
-    const calendarFixtures = scheduleResult.status === "fulfilled" ? scheduleResult.value : [];
+    const schedule = scheduleResult.status === "fulfilled" ? scheduleResult.value : { fixtures: [], tournamentId: "" };
+    const calendarFixtures = schedule.fixtures;
+    const formalActas = await fetchFormalActas(schedule.tournamentId);
     const scorersHtml = scorersResult.status === "fulfilled" ? scorersResult.value : "";
     const scorers = scorersHtml ? parseTeamScorers(scorersHtml, team) : [];
     return {
@@ -363,8 +420,8 @@ async function buildData() {
       scorersAvailable: hasScorersPage && /tabla_goleadores/i.test(scorersHtml),
       topScorers: parseTopScorers(scorers),
       scorersUrl: hasScorersPage ? statisticsUrlForTeam(team) : "",
-      fixtures: rosterHtml ? parseTeamFixtures(rosterHtml, team) : [],
-      calendarFixtures,
+      fixtures: addFormalActas(rosterHtml ? parseTeamFixtures(rosterHtml, team) : [], formalActas),
+      calendarFixtures: addFormalActas(calendarFixtures, formalActas),
       rosterAvailable: rosterResult.status === "fulfilled",
       scheduleAvailable: scheduleResult.status === "fulfilled",
     };
