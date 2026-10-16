@@ -301,10 +301,10 @@
       *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
     }
 
-    .sync-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin: 0 0 18px; }
+    .sync-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin: 32px 0 18px; }
     .sync-toolbar p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
     .sync-toolbar p[data-state="error"] { color: #9b273a; }
-    .sync-actions { display: flex; flex: 0 0 auto; align-items: center; gap: 8px; }
+    .sync-actions { display: flex; flex: 0 0 auto; align-items: center; gap: 14px; }
     .sync-toolbar .round-link { min-height: 38px; flex: 0 0 auto; padding-inline: 15px; cursor: pointer; }
     .sync-toolbar .round-link:disabled { opacity: .55; cursor: wait; }
     .sync-actions .round-link { border-color: rgba(255,255,255,.55); color: #fff; }
@@ -432,7 +432,7 @@
       .team-tab[aria-selected="true"] { outline-offset: 2px; }
       #inici, #club, #equips, #actualitat, #visita, .schedules, .schedule-panel { scroll-margin-top: 88px; }
       .schedules { padding-block: 0 42px; }
-      .sync-toolbar { align-items: flex-start; gap: 12px; margin-bottom: 15px; }
+      .sync-toolbar { align-items: flex-start; gap: 12px; margin-top: 24px; margin-bottom: 15px; }
       .sync-toolbar p { max-width: 260px; font-size: 10px; line-height: 1.5; }
       .sync-toolbar .round-link { min-height: 40px; padding-inline: 13px; font-size: 10px; }
       .schedule-panel { padding: 19px 16px; border-radius: 8px 22px 8px 22px; }
@@ -671,7 +671,7 @@
         <div class="sync-toolbar">
           <p id="sync-status" role="status" aria-live="polite">Connectant amb els resultats oficials…</p>
           <div class="sync-actions">
-            <button class="round-link" id="print-current-round" type="button" disabled aria-label="Imprimir o guardar la jornada en PDF" data-ca-label="Imprimir o desar la jornada en PDF" data-es-label="Imprimir o guardar la jornada en PDF"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M6.5 6.5V3h7v3.5m-7 7h-2A1.5 1.5 0 0 1 3 12V8a1.5 1.5 0 0 1 1.5-1.5h11A1.5 1.5 0 0 1 17 8v4a1.5 1.5 0 0 1-1.5 1.5h-2M6.5 11h7v5.5h-7z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-ca="Imprimir jornada" data-es="Imprimir jornada">Imprimir jornada</span></button>
+            <button class="round-link" id="print-current-round" type="button" disabled aria-label="Guardar la jornada como PDF" data-ca-label="Guardar la jornada com a PDF" data-es-label="Guardar la jornada como PDF"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 3v8m0 0 3-3m-3 3L7 8m-3.5 5v1.5A1.5 1.5 0 0 0 5 16h10a1.5 1.5 0 0 0 1.5-1.5V13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-ca="Guardar jornada" data-es="Guardar jornada">Guardar jornada</span></button>
             <button class="round-link" id="refresh-data" type="button"><span id="refresh-label">Actualitzar</span></button>
           </div>
         </div>
