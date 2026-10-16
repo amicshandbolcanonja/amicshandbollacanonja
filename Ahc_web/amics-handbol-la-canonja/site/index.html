@@ -213,7 +213,7 @@
     .reveal { animation: rise .65s both; }
     @keyframes rise { from { opacity: 0; transform: translateY(13px); } to { opacity: 1; transform: translateY(0); } }
     @media (max-width: 850px) {
-      html { overflow-x: clip; }
+      .topbar::before { left: 0; width: 100%; transform: none; }
       .menu-toggle { display: inline-flex; }
       .nav { position: absolute; top: calc(100% + 8px); right: 0; left: 0; display: none; flex-direction: column; align-items: stretch; gap: 0; padding: 8px 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--white); box-shadow: 0 16px 40px rgba(25,24,54,.12); }
       .nav.is-open { display: flex; }
