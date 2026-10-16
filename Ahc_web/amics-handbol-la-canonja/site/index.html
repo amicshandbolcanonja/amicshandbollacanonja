@@ -314,6 +314,14 @@
     @media (min-width: 761px) {
       .schedule-panel[data-round-view="current"] .fixture-card:not(.is-current),
       .schedule-panel[data-round-view="selected"] .fixture-card:not(.is-selected) { display: none; }
+      .schedule-panel[data-round-view="current"] .round-navigation,
+      .schedule-panel[data-round-view="selected"] .round-navigation,
+      .schedule-panel[data-round-view="current"] .round-view-filter,
+      .schedule-panel[data-round-view="selected"] .round-view-filter,
+      .schedule-panel[data-round-view="current"] .fixture-list,
+      .schedule-panel[data-round-view="selected"] .fixture-list { max-width: 1120px; margin-right: auto; margin-left: auto; }
+      .schedule-panel[data-round-view="current"] .fixture-list,
+      .schedule-panel[data-round-view="selected"] .fixture-list { grid-template-columns: minmax(0, 1fr); }
     }
     @media (max-width: 760px) { .round-view-filter { display: none; } }
     .team-panels { display: grid; gap: 18px; }
