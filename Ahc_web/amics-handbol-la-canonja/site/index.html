@@ -530,7 +530,7 @@
       .standings-table tbody td:nth-child(9) { grid-column: 3 / 5; grid-row: 2; }
       .standings-table tbody td:last-child { display: flex; grid-column: 4; grid-row: 1; align-self: center; flex-direction: column; align-items: flex-end; justify-content: center; color: var(--blue); font-size: 12px; font-weight: 900; }
       .standings-table tbody td:nth-child(n+3):nth-child(-n+9) { display: flex; flex-direction: column; align-items: center; font-size: 10px; font-weight: 750; }
-      .standings-table tbody td:nth-child(5), .standings-table tbody td:nth-child(6), .standings-table tbody td:nth-child(7), .standings-table tbody td:nth-child(8) { display: none; }
+      .standings-table tbody td:nth-child(n+5):nth-child(-n+8) { display: none; }
       .standings-table tbody td:nth-child(n+3):nth-child(-n+9)::before, .standings-table tbody td:last-child::before { content: attr(data-label); margin-bottom: 2px; color: var(--muted); font-size: 8px; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; }
       .standings-table tbody tr:last-child { border-bottom: 0; }
       .standings-table tbody tr.is-club { border-radius: 8px; }
