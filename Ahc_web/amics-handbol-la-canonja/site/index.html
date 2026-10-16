@@ -672,7 +672,6 @@
           <p id="sync-status" role="status" aria-live="polite">Connectant amb els resultats oficials…</p>
           <div class="sync-actions">
             <button class="round-link" id="print-current-round" type="button" disabled aria-label="Guardar la jornada como PDF" data-ca-label="Guardar la jornada com a PDF" data-es-label="Guardar la jornada como PDF"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 3v8m0 0 3-3m-3 3L7 8m-3.5 5v1.5A1.5 1.5 0 0 0 5 16h10a1.5 1.5 0 0 0 1.5-1.5V13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-ca="Guardar jornada" data-es="Guardar jornada">Guardar jornada</span></button>
-            <button class="round-link" id="refresh-data" type="button"><span id="refresh-label">Actualitzar</span></button>
           </div>
         </div>
         <div class="team-panels" id="team-panels">
@@ -738,8 +737,6 @@
       const teamEmptyNode = document.getElementById("team-empty");
       const panelsNode = document.getElementById("team-panels");
       const statusNode = document.getElementById("sync-status");
-      const refreshButton = document.getElementById("refresh-data");
-      const refreshLabel = document.getElementById("refresh-label");
       const printButton = document.getElementById("print-current-round");
       const printSummaryNode = document.getElementById("current-round-print");
       const menuButton = document.getElementById("menu-toggle");
@@ -794,14 +791,14 @@
         next: "Proper partit", noFixtures: "Encara no hi ha jornades publicades", noFixturesText: "Quan iSquad publiqui el calendari d’aquesta secció, els partits apareixeran aquí ordenats per data.",
         noPlayers: "La plantilla encara no està publicada.", update: "Consulta automàtica cada 5 minuts mentre la pàgina és oberta.",
         unavailable: "No s’ha pogut consultar iSquad. Torna-ho a provar d’aquí a uns minuts.", loading: "Connectant amb els resultats oficials…",
-        updated: "Actualitzat", refreshing: "Actualitzant…", refresh: "Actualitzar", source: "Dades de temporada 2026/27"
+        updated: "Actualitzat", source: "Dades de temporada 2026/27"
       } : {
         season: "Temporada", calendar: "Calendario", fixtures: "jornadas", players: "jugadores", roster: "Plantilla",
         played: "Finalizado", pending: "Pendiente", suspended: "Aplazado", home: "Local", away: "Visitante", time: "Hora pendiente",
         next: "Próximo partido", noFixtures: "Todavía no hay jornadas publicadas", noFixturesText: "Cuando iSquad publique el calendario de esta sección, los partidos aparecerán aquí ordenados por fecha.",
         noPlayers: "La plantilla aún no está publicada.", update: "Consulta automática cada 5 minutos mientras la página está abierta.",
         unavailable: "No se ha podido consultar iSquad. Vuelve a intentarlo dentro de unos minutos.", loading: "Conectando con los resultados oficiales…",
-        updated: "Actualizado", refreshing: "Actualizando…", refresh: "Actualizar", source: "Datos de temporada 2026/27"
+        updated: "Actualizado", source: "Datos de temporada 2026/27"
       };
       const teamWords = () => language === "ca" ? {
         all: "Tots", favorites: "Favorits", favorite: "Favorit", addFavorite: "Fixar equip", removeFavorite: "Treure de favorits",
@@ -831,7 +828,6 @@
         if (menuButton) menuButton.setAttribute("aria-label", menuButton.getAttribute("aria-expanded") === "true"
           ? (language === "ca" ? "Tancar el menú" : "Cerrar el menú")
           : menuButton.dataset[language + "Label"]);
-        refreshLabel.textContent = words().refresh;
         updateInstagramLink();
         if (instagramPostData) renderInstagramPost();
         else updateInstagramStatus();
@@ -1313,14 +1309,12 @@
         statusNode.dataset.state = state;
       }
 
-      async function loadData(force = false) {
+      async function loadData() {
         if (loading) return;
         loading = true;
-        refreshButton.disabled = true;
-        refreshLabel.textContent = words().refreshing;
         if (!siteData) setStatus(words().loading);
         try {
-          const response = await fetch(force ? "/api/data?refresh=1" : "/api/data", { cache: "no-store" });
+          const response = await fetch("/api/data", { cache: "no-store" });
           if (!response.ok) throw new Error("data unavailable");
           siteData = await response.json();
           if (!activeTeamKey && siteData.teams.length) activeTeamKey = siteData.teams[0].key;
@@ -1333,8 +1327,6 @@
           setStatus(words().unavailable, "error");
         } finally {
           loading = false;
-          refreshButton.disabled = false;
-          refreshLabel.textContent = words().refresh;
         }
       }
 
@@ -1353,7 +1345,6 @@
         try { localStorage.setItem("ahc-team-filter", teamFilter); } catch {}
         renderData();
       }));
-      refreshButton.addEventListener("click", () => loadData(true));
       printButton.addEventListener("click", printCurrentRound);
       window.addEventListener("afterprint", finishCurrentRoundPrint);
       menuButton?.addEventListener("click", () => {

@@ -138,8 +138,8 @@ workerBundle = replaceOnce(
 let page = replaceOnce(sourcePage, 'src="/images/ascenso_ahcjpeg.jpeg"', 'src="./images/ascenso_ahcjpeg.jpeg"');
 page = replaceOnce(
   page,
-  'fetch(force ? "/api/data?refresh=1" : "/api/data", { cache: "no-store" })',
-  'fetch(force ? "./api/data.json?refresh=1" : "./api/data.json", { cache: "no-store" })',
+  'fetch("/api/data", { cache: "no-store" })',
+  'fetch("./api/data.json", { cache: "no-store" })',
 );
 
 const workerUrl = `data:text/javascript;base64,${Buffer.from(workerBundle).toString("base64")}`;
