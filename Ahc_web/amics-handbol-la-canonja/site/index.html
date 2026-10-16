@@ -304,6 +304,7 @@
     .sync-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin: 0 0 18px; }
     .sync-toolbar p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
     .sync-toolbar p[data-state="error"] { color: #9b273a; }
+    .sync-actions { display: flex; flex: 0 0 auto; align-items: center; gap: 8px; }
     .sync-toolbar .round-link { min-height: 38px; flex: 0 0 auto; padding-inline: 15px; cursor: pointer; }
     .sync-toolbar .round-link:disabled { opacity: .55; cursor: wait; }
     .team-panels { display: grid; gap: 18px; }
@@ -338,8 +339,28 @@
     .staff-member span { color: var(--muted); font-size: 10px; font-weight: 750; line-height: 1.3; }
     .fixture-empty { grid-column: 1 / -1; min-height: 145px; padding: 25px; border: 1px dashed rgba(25,24,54,.24); border-radius: 14px; background: #f8f7f2; color: var(--muted); font-size: 13px; line-height: 1.7; }
     .fixture-empty strong { display: block; margin-bottom: 7px; color: var(--ink); font-size: 17px; }
+    #current-round-print { display: none; }
     @media (max-width: 760px) { .roster-grid, .staff-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-    @media (max-width: 520px) { .sync-toolbar { align-items: flex-start; } .roster-grid, .staff-grid { grid-template-columns: 1fr; } .fixture-list { grid-template-columns: 1fr; } }
+    @media (max-width: 520px) { .sync-toolbar { align-items: flex-start; flex-wrap: wrap; } .sync-actions { width: 100%; } .sync-actions .round-link { flex: 1 1 auto; } .roster-grid, .staff-grid { grid-template-columns: 1fr; } .fixture-list { grid-template-columns: 1fr; } }
+
+    @media print {
+      @page { size: A4 portrait; margin: 13mm; }
+      html, body { min-height: 0; background: #fff !important; color: #191836 !important; }
+      body.is-printing-round > :not(#current-round-print) { display: none !important; }
+      body.is-printing-round > #current-round-print { display: block !important; width: 100%; max-width: none; margin: 0; padding: 0; }
+      .print-round-header { margin-bottom: 20px; padding-bottom: 13px; border-bottom: 2px solid #3439b7; }
+      .print-round-club { margin: 0 0 6px; color: #3439b7; font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+      .print-round-header h1 { margin: 0 0 5px; font-size: 25px; line-height: 1.12; }
+      .print-round-header p { margin: 0; color: #55546a; font-size: 10px; line-height: 1.5; }
+      .print-round-columns { display: grid; grid-template-columns: 1.15fr 1.05fr 1.8fr 1.25fr; gap: 10px; padding-bottom: 5px; color: #55546a; font-size: 8px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+      .print-round-list { display: grid; gap: 9px; }
+      .print-round-item { display: grid; grid-template-columns: 1.15fr 1.05fr 1.8fr 1.25fr; gap: 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid #d8d7df; break-inside: avoid; }
+      .print-round-team, .print-round-date, .print-round-match, .print-round-venue { min-width: 0; font-size: 9px; line-height: 1.4; overflow-wrap: anywhere; }
+      .print-round-team strong, .print-round-date strong, .print-round-match strong, .print-round-venue strong { display: block; margin-bottom: 3px; color: #191836; font-size: 10px; }
+      .print-round-team span, .print-round-date span, .print-round-match span, .print-round-venue span { color: #55546a; }
+      .print-round-empty { padding: 20px 0; font-size: 12px; }
+      .print-round-footer { margin-top: 18px; padding-top: 8px; border-top: 1px solid #d8d7df; color: #66657b; font-size: 8px; }
+    }
 
     @media (max-width: 650px) {
       .shell { width: min(calc(100% - 32px), 500px); }
@@ -630,7 +651,10 @@
       <div class="shell section schedules" id="partits">
         <div class="sync-toolbar">
           <p id="sync-status" role="status" aria-live="polite">Connectant amb els resultats oficials…</p>
-          <button class="round-link" id="refresh-data" type="button"><span id="refresh-label">Actualitzar</span></button>
+          <div class="sync-actions">
+            <button class="round-link" id="print-current-round" type="button" disabled aria-label="Imprimir o guardar la jornada como PDF" data-ca-label="Imprimir o desar el resum de la jornada en PDF" data-es-label="Imprimir o guardar el resumen de la jornada en PDF"><span data-ca="Imprimir / PDF" data-es="Imprimir / PDF">Imprimir / PDF</span></button>
+            <button class="round-link" id="refresh-data" type="button"><span id="refresh-label">Actualitzar</span></button>
+          </div>
         </div>
         <div class="team-panels" id="team-panels">
           <div class="calendar-pending"><div><strong>Carregant equips…</strong><p>Estem consultant les plantilles i les jornades de la temporada.</p></div></div>
@@ -680,6 +704,8 @@
     </div>
   </footer>
 
+  <section id="current-round-print" aria-labelledby="print-round-title"></section>
+
 
   <script>
     (() => {
@@ -695,6 +721,8 @@
       const statusNode = document.getElementById("sync-status");
       const refreshButton = document.getElementById("refresh-data");
       const refreshLabel = document.getElementById("refresh-label");
+      const printButton = document.getElementById("print-current-round");
+      const printSummaryNode = document.getElementById("current-round-print");
       const menuButton = document.getElementById("menu-toggle");
       const siteNav = document.getElementById("primary-nav");
       const instagramPostNode = document.getElementById("instagram-post");
@@ -735,6 +763,10 @@
       const formatDate = (iso) => {
         if (!iso) return language === "ca" ? "Data pendent" : "Fecha pendiente";
         return new Intl.DateTimeFormat(language === "ca" ? "ca-ES" : "es-ES", { day: "2-digit", month: "short" }).format(new Date(iso + "T12:00:00"));
+      };
+      const formatFullDate = (iso) => {
+        if (!iso) return language === "ca" ? "Data pendent" : "Fecha pendiente";
+        return new Intl.DateTimeFormat(language === "ca" ? "ca-ES" : "es-ES", { weekday: "short", day: "2-digit", month: "short", year: "numeric" }).format(new Date(iso + "T12:00:00"));
       };
       const words = () => language === "ca" ? {
         season: "Temporada", calendar: "Calendari", fixtures: "jornades", players: "jugadors", roster: "Plantilla",
@@ -1087,7 +1119,7 @@
           const fixtures = team.fixtures || [];
           const nextFixture = fixtures.find((fixture) => fixture.state === "pending" && fixture.date && new Date(fixture.date + "T23:59:00") >= new Date());
           const next = nextFixture?.round;
-          const currentFixture = nextFixture || fixtures.find((fixture) => fixture.state === "pending") || [...fixtures].reverse().find((fixture) => fixture.state === "played") || fixtures[0];
+          const currentFixture = currentRoundFixture(team);
           const currentRound = currentFixture?.round;
           if (!fixtures.some((fixture) => fixture.round === selectedRounds[team.key])) selectedRounds[team.key] = currentRound;
           const selectedRound = selectedRounds[team.key];
@@ -1164,6 +1196,68 @@
         panelsNode.querySelectorAll("[data-team-favorite]").forEach((button) => button.addEventListener("click", () => toggleFavorite(button.dataset.teamFavorite)));
       }
 
+      function currentRoundFixture(team, now = new Date()) {
+        const fixtures = team.fixtures || [];
+        return fixtures.find((fixture) => fixture.state === "pending" && fixture.date && new Date(fixture.date + "T23:59:00") >= now)
+          || fixtures.find((fixture) => fixture.state === "pending")
+          || [...fixtures].reverse().find((fixture) => fixture.state === "played")
+          || fixtures[0];
+      }
+
+      function renderCurrentRoundPrint() {
+        const currentMatches = (siteData?.teams || []).flatMap((team) => {
+          const currentFixture = currentRoundFixture(team);
+          if (!currentFixture) return [];
+          return (team.fixtures || []).filter((fixture) => fixture.round === currentFixture.round).map((fixture) => ({ team, fixture }));
+        }).sort((first, second) => {
+          const firstDate = first.fixture.date || "9999-12-31";
+          const secondDate = second.fixture.date || "9999-12-31";
+          return firstDate.localeCompare(secondDate)
+            || String(first.fixture.time || "99:99").localeCompare(String(second.fixture.time || "99:99"))
+            || String(first.team.nameCa || "").localeCompare(String(second.team.nameCa || ""), "ca");
+        });
+        const ca = language === "ca";
+        const title = ca ? "Partits de la jornada actual" : "Partidos de la jornada actual";
+        const columns = '<div class="print-round-columns"><span>' + escapeHtml(ca ? "Equip i competició" : "Equipo y competición") + '</span><span>' + escapeHtml(ca ? "Data i hora" : "Fecha y hora") + '</span><span>' + escapeHtml(ca ? "Partit" : "Partido") + '</span><span>' + escapeHtml(ca ? "Pista" : "Pista") + '</span></div>';
+        const generated = siteData?.generatedAt ? new Intl.DateTimeFormat(ca ? "ca-ES" : "es-ES", { dateStyle: "short", timeStyle: "short" }).format(new Date(siteData.generatedAt)) : "";
+        const rows = currentMatches.length
+          ? '<div class="print-round-list">' + currentMatches.map(({ team, fixture }) => {
+            const ownHome = fixture.homeId === team.id;
+            const ownAway = fixture.awayId === team.id;
+            const teamName = ca ? team.nameCa : team.nameEs;
+            const competition = ca ? team.competitionCa : team.competitionEs;
+            const homeName = ownHome ? "Amics H.C." : fixture.homeName;
+            const awayName = ownAway ? "Amics H.C." : fixture.awayName;
+            const venue = String(fixture.venue || "").trim() || (ca ? "Per confirmar" : "Por confirmar");
+            const state = fixture.state === "played" ? (ca ? "Finalitzat" : "Finalizado") : fixture.state === "suspended" ? (ca ? "Ajornat" : "Aplazado") : (ca ? "Pendent" : "Pendiente");
+            const hasScore = fixture.homeScore != null && fixture.homeScore !== "" && fixture.awayScore != null && fixture.awayScore !== "";
+            const score = hasScore ? " · " + fixture.homeScore + "–" + fixture.awayScore : "";
+            return '<article class="print-round-item">' +
+              '<div class="print-round-team"><strong>' + escapeHtml(teamName) + '</strong><span>' + escapeHtml(competition || "") + '</span><span>' + escapeHtml((ca ? "Jornada " : "Jornada ") + String(fixture.round).padStart(2, "0")) + '</span></div>' +
+              '<div class="print-round-date"><strong>' + escapeHtml(formatFullDate(fixture.date)) + '</strong><span>' + escapeHtml(fixture.time ? fixture.time + " h" : (ca ? "Hora pendent" : "Hora pendiente")) + '</span></div>' +
+              '<div class="print-round-match"><strong>' + escapeHtml(homeName) + ' – ' + escapeHtml(awayName) + escapeHtml(score) + '</strong><span>' + escapeHtml(ownHome ? (ca ? "Local" : "Local") : ownAway ? (ca ? "Visitant" : "Visitante") : "") + ' · ' + escapeHtml(state) + '</span></div>' +
+              '<div class="print-round-venue"><strong>' + escapeHtml(ca ? "Pista" : "Pista") + '</strong><span>' + escapeHtml(venue) + '</span></div>' +
+              '</article>';
+          }).join("") + '</div>'
+          : '<p class="print-round-empty">' + escapeHtml(ca ? "No hi ha partits de jornada disponibles per als equips del club." : "No hay partidos de jornada disponibles para los equipos del club.") + '</p>';
+        const updatedLabel = ca ? "Dades actualitzades" : "Datos actualizados";
+        const season = siteData?.season ? " · " + escapeHtml(siteData.season) : "";
+        printSummaryNode.innerHTML = '<header class="print-round-header"><p class="print-round-club">Amics Handbol La Canonja' + season + '</p><h1 id="print-round-title">' + escapeHtml(title) + '</h1><p>' + currentMatches.length + ' ' + escapeHtml(ca ? (currentMatches.length === 1 ? "partit" : "partits") : (currentMatches.length === 1 ? "partido" : "partidos")) + (generated ? ' · ' + escapeHtml(updatedLabel) + ': ' + escapeHtml(generated) : '') + '</p></header>' + (currentMatches.length ? columns : "") + rows + '<footer class="print-round-footer">' + escapeHtml(ca ? "Horaris i pistes segons les dades oficials publicades. Confirmeu qualsevol canvi d’última hora." : "Horarios y pistas según los datos oficiales publicados. Confirme cualquier cambio de última hora.") + '</footer>';
+      }
+
+      function printCurrentRound() {
+        if (!siteData?.teams?.length) return;
+        renderCurrentRoundPrint();
+        document.title = language === "ca" ? "Jornada actual · Amics Handbol La Canonja" : "Jornada actual · Amics Handbol La Canonja";
+        document.body.classList.add("is-printing-round");
+        window.print();
+      }
+
+      function finishCurrentRoundPrint() {
+        document.body.classList.remove("is-printing-round");
+        updateStaticLanguage();
+      }
+
       function renderData() {
         if (!siteData?.teams?.length) return;
         renderTabs();
@@ -1194,6 +1288,7 @@
           if (!response.ok) throw new Error("data unavailable");
           siteData = await response.json();
           if (!activeTeamKey && siteData.teams.length) activeTeamKey = siteData.teams[0].key;
+          printButton.disabled = !siteData.teams.length;
           renderData();
           lastLoad = Date.now();
           const updated = new Intl.DateTimeFormat(language === "ca" ? "ca-ES" : "es-ES", { hour: "2-digit", minute: "2-digit" }).format(new Date(siteData.generatedAt));
@@ -1223,6 +1318,8 @@
         renderData();
       }));
       refreshButton.addEventListener("click", () => loadData(true));
+      printButton.addEventListener("click", printCurrentRound);
+      window.addEventListener("afterprint", finishCurrentRoundPrint);
       menuButton?.addEventListener("click", () => {
         const expanded = menuButton.getAttribute("aria-expanded") !== "true";
         menuButton.setAttribute("aria-expanded", String(expanded));
