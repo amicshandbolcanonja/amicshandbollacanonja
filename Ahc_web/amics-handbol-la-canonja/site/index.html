@@ -307,6 +307,15 @@
     .sync-actions { display: flex; flex: 0 0 auto; align-items: center; gap: 8px; }
     .sync-toolbar .round-link { min-height: 38px; flex: 0 0 auto; padding-inline: 15px; cursor: pointer; }
     .sync-toolbar .round-link:disabled { opacity: .55; cursor: wait; }
+    .sync-actions #print-current-round { background: #fff; color: var(--ink); }
+    .sync-actions #print-current-round:hover { background: #fff; color: var(--blue); }
+    .round-view-filter { display: flex; align-items: center; gap: 9px; margin: -5px 0 14px; color: var(--muted); font-size: 11px; font-weight: 750; }
+    .round-view-filter select { min-height: 36px; padding: 0 32px 0 12px; border: 1px solid var(--line); border-radius: 99px; background: #fff; color: var(--ink); font: inherit; cursor: pointer; }
+    @media (min-width: 761px) {
+      .schedule-panel[data-round-view="current"] .fixture-card:not(.is-current),
+      .schedule-panel[data-round-view="selected"] .fixture-card:not(.is-selected) { display: none; }
+    }
+    @media (max-width: 760px) { .round-view-filter { display: none; } }
     .team-panels { display: grid; gap: 18px; }
     .team-tab { min-height: 172px; }
     .team-tab .team-card-copy h3 { font-size: clamp(20px, 2.5vw, 26px); }
@@ -749,6 +758,7 @@
       let favoriteTeams = readSavedFavorites();
       let teamFilter = readSavedValue("ahc-team-filter") === "favorites" ? "favorites" : "all";
       const selectedRounds = {};
+      const roundDisplayModes = {};
       let lastLoad = 0;
       let loading = false;
       let instagramStatusKey = "loading";
@@ -1123,6 +1133,8 @@
           const currentRound = currentFixture?.round;
           if (!fixtures.some((fixture) => fixture.round === selectedRounds[team.key])) selectedRounds[team.key] = currentRound;
           const selectedRound = selectedRounds[team.key];
+          if (!roundDisplayModes[team.key]) roundDisplayModes[team.key] = "current";
+          const roundDisplayMode = roundDisplayModes[team.key];
           const selectedRoundIndex = fixtures.findIndex((fixture) => fixture.round === selectedRound);
           const rosterPlayers = [
             ...(team.players || []).map((name) => ({ name, invited: false })),
@@ -1140,12 +1152,18 @@
           const staffEmpty = language === "ca" ? "La federació encara no ha publicat el cos tècnic." : "La federación todavía no ha publicado el cuerpo técnico.";
           const roundDescription = selectedRound === currentRound
             ? (language === "ca" ? "Jornada actual" : "Jornada actual")
-            : (language === "ca" ? "Jornada actual: " : "Jornada actual: ") + String(currentRound).padStart(2, "0");
+            : (language === "ca" ? "Jornada seleccionada" : "Jornada seleccionada");
           const roundNavigation = fixtures.length
             ? '<div class="round-navigation" aria-label="' + (language === "ca" ? "Canvi de jornada" : "Cambio de jornada") + '">' +
               '<button class="round-control" type="button" data-round-control data-team-key="' + escapeHtml(team.key) + '" data-round-direction="-1" aria-label="' + (language === "ca" ? "Jornada anterior" : "Jornada anterior") + '"' + (selectedRoundIndex <= 0 ? ' disabled' : '') + '><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m12.5 4.5-5.5 5.5 5.5 5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>' +
               '<span class="round-indicator" aria-live="polite"><strong>Jornada ' + String(selectedRound).padStart(2, "0") + '</strong><span class="' + (selectedRound === currentRound ? 'round-current-label' : '') + '">' + roundDescription + '</span></span>' +
               '<button class="round-control" type="button" data-round-control data-team-key="' + escapeHtml(team.key) + '" data-round-direction="1" aria-label="' + (language === "ca" ? "Jornada següent" : "Jornada siguiente") + '"' + (selectedRoundIndex < 0 || selectedRoundIndex >= fixtures.length - 1 ? ' disabled' : '') + '><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m7.5 4.5 5.5 5.5-5.5 5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>'
+            : "";
+          const roundViewFilter = fixtures.length
+            ? '<label class="round-view-filter"><span>' + (language === "ca" ? "Mostra:" : "Mostrar:") + '</span><select data-round-view-filter data-team-key="' + escapeHtml(team.key) + '" aria-label="' + escapeHtml(language === "ca" ? "Filtrar les jornades de " + title : "Filtrar las jornadas de " + title) + '">' +
+              '<option value="current"' + (roundDisplayMode === "current" ? " selected" : "") + '>' + escapeHtml(language === "ca" ? "Jornada actual" : "Jornada actual") + '</option>' +
+              '<option value="selected"' + (roundDisplayMode === "selected" ? " selected" : "") + '>' + escapeHtml(language === "ca" ? "Jornada seleccionada" : "Jornada seleccionada") + '</option>' +
+              '<option value="all"' + (roundDisplayMode === "all" ? " selected" : "") + '>' + escapeHtml(language === "ca" ? "Totes les jornades" : "Todas las jornadas") + '</option></select></label>'
             : "";
           const calendar = fixtures.length
             ? '<div class="fixture-list" role="list" aria-label="' + escapeHtml(language === "ca" ? "Partits de " + title : "Partidos de " + title) + '">' + fixtures.map((fixture) => fixtureMarkup(team, fixture, next, currentRound, selectedRound)).join("") + '</div>'
@@ -1171,9 +1189,9 @@
           const favoriteLabel = isFavorite ? teamWords().removeFavorite : teamWords().addFavorite;
           const favoriteToolbar = '<div class="favorite-toolbar"><button class="team-favorite-toggle" type="button" data-team-favorite="' + escapeHtml(team.key) + '" aria-pressed="' + isFavorite + '"><span class="team-favorite-toggle-icon" aria-hidden="true">' + (isFavorite ? '★' : '☆') + '</span><span>' + escapeHtml(favoriteLabel) + '</span></button></div>';
           const standingsMarkup = renderStandings(team);
-          return '<section class="schedule-panel" role="tabpanel" id="schedule-' + escapeHtml(team.key) + '" aria-labelledby="tab-' + escapeHtml(team.key) + '"' + (active ? '' : ' hidden') + '>' +
+          return '<section class="schedule-panel" data-round-view="' + escapeHtml(roundDisplayMode) + '" role="tabpanel" id="schedule-' + escapeHtml(team.key) + '" aria-labelledby="tab-' + escapeHtml(team.key) + '"' + (active ? '' : ' hidden') + '>' +
             '<div class="schedule-heading"><div><p class="section-label">' + escapeHtml(words().calendar) + ' · ' + escapeHtml(siteData.season) + '</p><h3>' + escapeHtml(title) + '</h3><p>' + escapeHtml(competition) + '</p></div><span class="schedule-stamp">' + fixtures.length + ' ' + escapeHtml(words().fixtures) + '</span></div>' +
-            favoriteToolbar + roundNavigation + calendar + '<p class="calendar-note">' + escapeHtml(words().update) + '</p>' + standingsMarkup +
+            favoriteToolbar + roundNavigation + roundViewFilter + calendar + '<p class="calendar-note">' + escapeHtml(words().update) + '</p>' + standingsMarkup +
             '<details class="roster-section"><summary class="roster-heading"><h4>' + escapeHtml(words().roster) + '</h4><span class="roster-summary-meta">' + rosterPlayers.length + ' ' + escapeHtml(words().players) + '</span><span class="roster-chevron" aria-hidden="true">⌄</span></summary><div class="roster-content">' + scorerSourceNote + players +
             '<div class="staff-section"><div class="roster-heading"><h4>' + escapeHtml(staffTitle) + '</h4><span>' + (team.staff?.length || 0) + ' ' + escapeHtml(staffCount) + '</span></div>' + staff + '</div></div></details></section>';
         });
@@ -1187,11 +1205,19 @@
           const nextFixture = fixtures[index + direction];
           if (!nextFixture) return;
           selectedRounds[teamKey] = nextFixture.round;
+          roundDisplayModes[teamKey] = "selected";
           renderData();
           const panel = panelsNode.querySelector('#schedule-' + CSS.escape(teamKey));
           const nextControl = panel?.querySelector('[data-round-control][data-round-direction="' + direction + '"]:not(:disabled)') || panel?.querySelector('[data-round-control]:not(:disabled)');
           nextControl?.focus({ preventScroll: true });
           if (window.matchMedia("(min-width: 651px)").matches) panel?.querySelector('[data-round="' + nextFixture.round + '"]')?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }));
+        panelsNode.querySelectorAll("[data-round-view-filter]").forEach((select) => select.addEventListener("change", () => {
+          const teamKey = select.dataset.teamKey;
+          const team = siteData.teams.find((item) => item.key === teamKey);
+          roundDisplayModes[teamKey] = ["current", "selected", "all"].includes(select.value) ? select.value : "current";
+          if (roundDisplayModes[teamKey] === "current") selectedRounds[teamKey] = currentRoundFixture(team)?.round;
+          renderData();
         }));
         panelsNode.querySelectorAll("[data-team-favorite]").forEach((button) => button.addEventListener("click", () => toggleFavorite(button.dataset.teamFavorite)));
       }
