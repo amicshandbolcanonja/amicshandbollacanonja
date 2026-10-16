@@ -173,18 +173,18 @@
     .instagram-profile-link { flex: 0 0 auto; color: var(--blue); text-decoration-thickness: 1px; text-underline-offset: 4px; }
     .instagram-post-frame { min-width: 0; overflow: hidden; margin-top: 16px; border-radius: 14px; background: #f8f7ff; }
     .instagram-post-status { display: grid; min-height: 240px; place-items: center; margin: 0; padding: 26px; color: var(--muted); font-size: 13px; line-height: 1.7; text-align: center; }
-    .instagram-publication { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); align-items: stretch; }
-    .instagram-post-media-link { position: relative; display: block; min-width: 0; aspect-ratio: 1; overflow: hidden; background: #eeedf6; }
-    .instagram-post-image { display: block; width: 100%; height: 100%; object-fit: cover; }
+    .instagram-publication { display: flex; min-width: 0; align-items: stretch; }
+    .instagram-post-media-link { position: relative; z-index: 0; display: block; flex: 0 0 52%; width: 52%; max-width: 52%; min-width: 0; align-self: start; aspect-ratio: 1; overflow: hidden; background: #eeedf6; }
+    .instagram-post-image { position: absolute; inset: 0; display: block; width: 100%; max-width: 100%; height: 100%; object-fit: cover; }
     .instagram-post-media-link.is-video::after { position: absolute; right: 12px; bottom: 12px; display: grid; width: 35px; height: 35px; place-items: center; border: 1px solid rgba(255,255,255,.7); border-radius: 50%; background: rgba(25,24,54,.78); color: white; content: "▶"; font-size: 12px; }
-    .instagram-caption-panel { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; gap: 12px; padding: 17px; }
+    .instagram-caption-panel { position: relative; z-index: 1; display: flex; flex: 1 1 0; min-width: 0; overflow-wrap: anywhere; flex-direction: column; align-items: flex-start; gap: 12px; padding: 17px; background: #f8f7ff; }
     .instagram-caption-meta { display: flex; width: 100%; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; }
     .instagram-caption-label { color: var(--blue); font-size: 9px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
     .instagram-caption-date { color: var(--muted); font-size: 9px; font-weight: 700; }
     .instagram-caption-text { margin: 0; color: var(--ink); font-size: 11px; line-height: 1.65; white-space: pre-line; overflow-wrap: anywhere; }
     .instagram-caption-toggle { min-height: 40px; margin: auto 0 0; padding: 0; border: 0; background: transparent; color: var(--blue); font: inherit; font-size: 10px; font-weight: 850; text-align: left; text-underline-offset: 3px; cursor: pointer; }
     .instagram-caption-toggle:hover { text-decoration: underline; }
-    .instagram-post-placeholder { display: grid; min-width: 0; aspect-ratio: 1; place-items: center; padding: 18px; background: #eeedf6; color: var(--muted); font-size: 11px; line-height: 1.6; text-align: center; }
+    .instagram-post-placeholder { display: grid; flex: 0 0 52%; width: 52%; min-width: 0; aspect-ratio: 1; place-items: center; padding: 18px; background: #eeedf6; color: var(--muted); font-size: 11px; line-height: 1.6; text-align: center; }
     .instagram-latest-link { display: flex; justify-content: center; margin: 14px auto 2px; color: var(--blue); font-size: 13px; font-weight: 800; text-underline-offset: 4px; }
     @media (min-width: 851px) {
       .social-section .instagram-card { width: 100%; max-width: 560px; justify-self: end; }
@@ -228,9 +228,8 @@
       .team-card h3 { font-size: 22px; }
       .social-section { grid-template-columns: 1fr; gap: 27px; padding-top: 0; }
       .instagram-card { padding: 12px; }
-      .instagram-publication { grid-template-columns: minmax(0, 1fr); }
-      .instagram-post-media-link { aspect-ratio: 16 / 10; }
-      .instagram-post-placeholder { aspect-ratio: 16 / 10; }
+      .instagram-publication { flex-direction: column; }
+      .instagram-post-media-link, .instagram-post-placeholder { flex: none; width: 100%; max-width: 100%; aspect-ratio: 16 / 10; }
       .instagram-caption-panel { padding: 16px; }
       .instagram-caption-text { font-size: 12px; }
       .instagram-post-status { min-height: 190px; }
