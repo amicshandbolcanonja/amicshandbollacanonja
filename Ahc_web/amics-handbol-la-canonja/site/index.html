@@ -174,9 +174,17 @@
     .instagram-post-frame { min-width: 0; overflow: hidden; margin-top: 16px; border-radius: 14px; background: #f8f7ff; }
     .instagram-post-status { display: grid; min-height: 240px; place-items: center; margin: 0; padding: 26px; color: var(--muted); font-size: 13px; line-height: 1.7; text-align: center; }
     .instagram-publication { display: flex; min-width: 0; align-items: stretch; }
-    .instagram-post-media-link { position: relative; z-index: 0; display: block; flex: 0 0 52%; width: 52%; max-width: 52%; min-width: 0; align-self: start; aspect-ratio: 1; overflow: hidden; background: #eeedf6; }
+    .instagram-post-gallery { position: relative; z-index: 0; display: block; flex: 0 0 52%; width: 52%; max-width: 52%; min-width: 0; align-self: start; aspect-ratio: 1; overflow: hidden; background: #eeedf6; }
+    .instagram-post-media-link { position: absolute; inset: 0; display: block; overflow: hidden; }
     .instagram-post-image { position: absolute; inset: 0; display: block; width: 100%; max-width: 100%; height: 100%; object-fit: cover; }
+    .instagram-gallery-fallback { position: absolute; inset: 0; display: grid; place-items: center; padding: 20px; background: #eeedf6; color: var(--muted); font-size: 11px; line-height: 1.6; text-align: center; }
+    .instagram-gallery-fallback[hidden] { display: none; }
     .instagram-post-media-link.is-video::after { position: absolute; right: 12px; bottom: 12px; display: grid; width: 35px; height: 35px; place-items: center; border: 1px solid rgba(255,255,255,.7); border-radius: 50%; background: rgba(25,24,54,.78); color: white; content: "▶"; font-size: 12px; }
+    .instagram-gallery-controls { position: absolute; z-index: 1; right: 10px; bottom: 10px; left: 10px; display: flex; align-items: center; justify-content: space-between; pointer-events: none; }
+    .instagram-gallery-controls button, .instagram-gallery-count { display: grid; min-width: 34px; height: 34px; place-items: center; border: 1px solid rgba(255,255,255,.7); border-radius: 999px; background: rgba(25,24,54,.78); color: white; font: inherit; font-size: 13px; font-weight: 800; }
+    .instagram-gallery-controls button { cursor: pointer; pointer-events: auto; }
+    .instagram-gallery-controls button:disabled { opacity: .48; cursor: default; }
+    .instagram-gallery-count { min-width: 54px; padding: 0 9px; font-size: 10px; }
     .instagram-caption-panel { position: relative; z-index: 1; display: flex; flex: 1 1 0; min-width: 0; overflow-wrap: anywhere; flex-direction: column; align-items: flex-start; gap: 12px; padding: 17px; background: #f8f7ff; }
     .instagram-caption-meta { display: flex; width: 100%; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; }
     .instagram-caption-label { color: var(--blue); font-size: 9px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
@@ -230,9 +238,9 @@
       .social-section { grid-template-columns: 1fr; gap: 27px; padding-top: 0; }
       .instagram-card { padding: 12px; }
       .instagram-publication { flex-direction: column; }
-      .instagram-post-media-link, .instagram-post-placeholder { flex: none; width: 100%; max-width: 100%; }
-      .instagram-post-media-link { aspect-ratio: auto; }
-      .instagram-post-image { position: static; inset: auto; height: auto; object-fit: contain; }
+      .instagram-post-gallery, .instagram-post-placeholder { flex: none; width: 100%; max-width: 100%; }
+      .instagram-post-gallery { aspect-ratio: 4 / 3; }
+      .instagram-post-image { object-fit: contain; }
       .instagram-post-placeholder { aspect-ratio: 16 / 10; }
       .instagram-caption-panel { padding: 16px; }
       .instagram-caption-text { font-size: 12px; }
@@ -720,6 +728,7 @@
       let instagramPostIsLatest = false;
       let instagramPostData = null;
       let instagramCaptionExpanded = true;
+      let instagramImageIndex = 0;
 
       const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[character]));
       const normalizePlayerName = (value) => String(value ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -815,7 +824,10 @@
 
         const publication = document.createElement("article");
         publication.className = "instagram-publication";
-        if (post.image) {
+        const images = Array.isArray(post.images) && post.images.length ? post.images : post.image ? [post.image] : [];
+        if (images.length) {
+          const gallery = document.createElement("div");
+          gallery.className = "instagram-post-gallery";
           const mediaLink = document.createElement("a");
           mediaLink.className = "instagram-post-media-link" + (post.isVideo ? " is-video" : "");
           mediaLink.href = post.permalink;
@@ -824,18 +836,48 @@
           mediaLink.setAttribute("aria-label", language === "ca" ? "Obrir l’última publicació a Instagram" : "Abrir la última publicación en Instagram");
           const image = document.createElement("img");
           image.className = "instagram-post-image";
-          image.src = post.image;
           image.alt = "";
           image.loading = "lazy";
           image.decoding = "async";
-          image.addEventListener("error", () => {
-            const placeholder = document.createElement("div");
-            placeholder.className = "instagram-post-placeholder";
-            placeholder.textContent = language === "ca" ? "Imatge no disponible. Obre la publicació a Instagram." : "Imagen no disponible. Abre la publicación en Instagram.";
-            mediaLink.replaceWith(placeholder);
-          }, { once: true });
-          mediaLink.append(image);
-          publication.append(mediaLink);
+          const imageFallback = document.createElement("span");
+          imageFallback.className = "instagram-gallery-fallback";
+          imageFallback.hidden = true;
+          imageFallback.textContent = language === "ca" ? "Imatge no disponible. Obre la publicació a Instagram." : "Imagen no disponible. Abre la publicación en Instagram.";
+          image.addEventListener("load", () => { imageFallback.hidden = true; });
+          image.addEventListener("error", () => { imageFallback.hidden = false; });
+          mediaLink.append(image, imageFallback);
+          gallery.append(mediaLink);
+          if (images.length > 1) {
+            const controls = document.createElement("div");
+            controls.className = "instagram-gallery-controls";
+            const previous = document.createElement("button");
+            previous.type = "button";
+            previous.textContent = "‹";
+            previous.setAttribute("aria-label", language === "ca" ? "Imatge anterior" : "Imagen anterior");
+            const count = document.createElement("span");
+            count.className = "instagram-gallery-count";
+            count.setAttribute("aria-live", "polite");
+            const next = document.createElement("button");
+            next.type = "button";
+            next.textContent = "›";
+            next.setAttribute("aria-label", language === "ca" ? "Imatge següent" : "Imagen siguiente");
+            const setSlide = (index) => {
+              instagramImageIndex = (index + images.length) % images.length;
+              imageFallback.hidden = true;
+              image.src = images[instagramImageIndex];
+              count.textContent = `${instagramImageIndex + 1} / ${images.length}`;
+              previous.disabled = instagramImageIndex === 0;
+              next.disabled = instagramImageIndex === images.length - 1;
+            };
+            previous.addEventListener("click", () => setSlide(instagramImageIndex - 1));
+            next.addEventListener("click", () => setSlide(instagramImageIndex + 1));
+            controls.append(previous, count, next);
+            gallery.append(controls);
+            setSlide(Math.min(instagramImageIndex, images.length - 1));
+          } else {
+            image.src = images[0];
+          }
+          publication.append(gallery);
         } else {
           const placeholder = document.createElement("div");
           placeholder.className = "instagram-post-placeholder";
@@ -905,18 +947,25 @@
           if (candidate.hostname !== "www.instagram.com" || !/^\/(p|reel|tv)\/[A-Za-z0-9_-]+\/?$/.test(candidate.pathname)) {
             throw new Error("Instagram post link is invalid");
           }
-          const image = String(payload.image || "");
-          const localImage = image.startsWith("./images/") && !image.includes("..");
-          let remoteImage = false;
-          try { remoteImage = new URL(image).hostname.endsWith("cdninstagram.com"); } catch {}
-          if (image && !localImage && !remoteImage) throw new Error("Instagram image link is invalid");
+          const images = Array.isArray(payload.images) ? payload.images.map((image) => String(image || "")).filter(Boolean) : [];
+          if (!images.length && payload.image) images.push(String(payload.image));
+          const isAllowedImage = (image) => {
+            if (image.startsWith("./images/") && !image.includes("..")) return true;
+            try {
+              const imageUrl = new URL(image);
+              return imageUrl.protocol === "https:" && (imageUrl.hostname === "cdninstagram.com" || imageUrl.hostname.endsWith(".cdninstagram.com"));
+            } catch { return false; }
+          };
+          if (images.some((image) => !isAllowedImage(image))) throw new Error("Instagram image link is invalid");
           instagramPostData = {
             permalink: candidate.href,
             caption: typeof payload.caption === "string" ? payload.caption.trim() : "",
             publishedAt: typeof payload.publishedAt === "string" ? payload.publishedAt : "",
             isVideo: Boolean(payload.isVideo),
-            image,
+            images,
+            image: images[0] || "",
           };
+          instagramImageIndex = 0;
           instagramPostUrl = candidate.href;
           instagramPostIsLatest = true;
           updateInstagramLink();

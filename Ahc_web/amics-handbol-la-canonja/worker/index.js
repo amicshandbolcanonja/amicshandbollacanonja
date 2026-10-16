@@ -542,13 +542,60 @@ async function getData(forceRefresh) {
   return refresh;
 }
 
+function parseInstagramMedia(html) {
+  const mediaIndex = html.indexOf("graphql_media");
+  if (mediaIndex < 0) return null;
+  const media = html.slice(mediaIndex, mediaIndex + 250000).replaceAll(String.fromCharCode(92) + '"', '"');
+  const markerIndex = media.indexOf('"shortcode_media":');
+  const objectStart = media.indexOf("{", markerIndex);
+  if (markerIndex < 0 || objectStart < 0) return null;
+
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let index = objectStart; index < media.length; index += 1) {
+    const character = media[index];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (character === "\\") escaped = true;
+      else if (character === '"') inString = false;
+      continue;
+    }
+    if (character === '"') inString = true;
+    else if (character === "{") depth += 1;
+    else if (character === "}" && --depth === 0) {
+      try { return JSON.parse(media.slice(objectStart, index + 1)); } catch { return null; }
+    }
+  }
+  return null;
+}
+
 function parseInstagramPosts(html) {
   const mediaIndex = html.indexOf("graphql_media");
-  if (mediaIndex < 0) return "";
-  const media = html.slice(mediaIndex, mediaIndex + 50000).replaceAll(String.fromCharCode(92) + '"', '"');
-  const shortcodes = [...media.matchAll(/"shortcode":"([A-Za-z0-9_-]+)"/g)].map((match) => match[1]);
-  const latestShortcode = [...new Set(shortcodes)][0];
-  return latestShortcode ? `https://www.instagram.com/p/${latestShortcode}/` : "";
+  const media = mediaIndex < 0 ? "" : html.slice(mediaIndex, mediaIndex + 250000).replaceAll(String.fromCharCode(92) + '"', '"');
+  const post = parseInstagramMedia(html);
+  const shortcode = String(post?.shortcode || media.match(/"shortcode":"([A-Za-z0-9_-]+)"/)?.[1] || "");
+  if (!/^[A-Za-z0-9_-]+$/.test(shortcode)) return null;
+
+  const isInstagramImageUrl = (value) => {
+    try {
+      const url = new URL(value);
+      return url.protocol === "https:" && (url.hostname === "cdninstagram.com" || url.hostname.endsWith(".cdninstagram.com"));
+    } catch { return false; }
+  };
+  const images = post?.edge_sidecar_to_children?.edges
+    ?.map((edge) => String(edge?.node?.display_url || edge?.node?.display_resources?.at(-1)?.src || ""))
+    .filter(isInstagramImageUrl) || [];
+  if (!images.length && isInstagramImageUrl(post?.display_url)) images.push(post.display_url);
+  const timestamp = Number(post?.taken_at_timestamp);
+  return {
+    permalink: `https://www.instagram.com/p/${shortcode}/`,
+    caption: typeof post?.edge_media_to_caption?.edges?.[0]?.node?.text === "string" ? post.edge_media_to_caption.edges[0].node.text : "",
+    publishedAt: Number.isFinite(timestamp) && timestamp > 0 ? new Date(timestamp * 1000).toISOString() : "",
+    isVideo: Boolean(post?.is_video),
+    images,
+    image: images[0] || "",
+  };
 }
 
 async function getInstagramPosts() {
@@ -560,9 +607,9 @@ async function getInstagramPosts() {
     signal: AbortSignal.timeout(15000),
   });
   if (!response.ok) throw new Error(`Instagram returned ${response.status}`);
-  const permalink = parseInstagramPosts(await response.text());
-  if (!permalink) throw new Error("Instagram did not return any posts");
-  cachedInstagramPosts = { permalink };
+  const post = parseInstagramPosts(await response.text());
+  if (!post?.permalink) throw new Error("Instagram did not return any posts");
+  cachedInstagramPosts = post;
   instagramCachedAt = Date.now();
   return cachedInstagramPosts;
 }
@@ -589,7 +636,7 @@ export default {
         return jsonResponse(await getInstagramPosts());
       } catch (error) {
         console.error("Instagram sync failed", error instanceof Error ? error.message : error);
-        return jsonResponse({ permalink: "" }, 502);
+        return jsonResponse({ permalink: "", images: [] }, 502);
       }
     }
 

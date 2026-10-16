@@ -62,15 +62,19 @@ async function fetchLatestInstagramPost() {
       .replace(/\\t/g, "\t")
       .replace(/\\\//g, "/")
       .replace(/\\\\/g, "\\");
-    const imageUrl = decodeEscapes(post.display_url || "");
+    const imageUrls = post.edge_sidecar_to_children?.edges
+      ?.map((edge) => decodeEscapes(edge?.node?.display_url || edge?.node?.display_resources?.at(-1)?.src || ""))
+      .filter(Boolean) || [];
+    if (!imageUrls?.length && post.display_url) imageUrls.push(decodeEscapes(post.display_url));
     const caption = decodeEscapes(post.edge_media_to_caption?.edges?.[0]?.node?.text).trim();
     const timestamp = Number(post.taken_at_timestamp);
-    let imageBytes = null;
-    let imageFile = "";
-    if (imageUrl) {
+    const downloadedImages = [];
+    let totalImageBytes = 0;
+    const images = [];
+    for (const [index, imageUrl] of (imageUrls || []).entries()) {
       try {
         const parsedImageUrl = new URL(imageUrl);
-        if (parsedImageUrl.protocol !== "https:" || !parsedImageUrl.hostname.endsWith("cdninstagram.com")) {
+        if (parsedImageUrl.protocol !== "https:" || !(parsedImageUrl.hostname === "cdninstagram.com" || parsedImageUrl.hostname.endsWith(".cdninstagram.com"))) {
           throw new Error("Instagram returned an unexpected image host");
         }
         const imageResponse = await fetch(parsedImageUrl, {
@@ -79,11 +83,18 @@ async function fetchLatestInstagramPost() {
         });
         const contentType = imageResponse.headers.get("content-type") || "";
         if (!imageResponse.ok || !contentType.startsWith("image/")) throw new Error("Instagram image could not be downloaded");
-        imageBytes = Buffer.from(await imageResponse.arrayBuffer());
-        if (imageBytes.length > 15 * 1024 * 1024) throw new Error("Instagram image is too large to snapshot");
-        imageFile = contentType.includes("webp") ? "instagram-latest.webp" : contentType.includes("png") ? "instagram-latest.png" : "instagram-latest.jpg";
+        const imageBytes = Buffer.from(await imageResponse.arrayBuffer());
+        if (imageBytes.length > 15 * 1024 * 1024 || totalImageBytes + imageBytes.length > 50 * 1024 * 1024) {
+          throw new Error("Instagram carousel images are too large to snapshot");
+        }
+        totalImageBytes += imageBytes.length;
+        const extension = contentType.includes("webp") ? "webp" : contentType.includes("png") ? "png" : contentType.includes("avif") ? "avif" : contentType.includes("gif") ? "gif" : "jpg";
+        const imageFile = `instagram-latest-${index + 1}.${extension}`;
+        downloadedImages.push({ imageFile, imageBytes });
+        images.push("./images/" + imageFile);
       } catch (error) {
-        console.warn("Could not snapshot the latest Instagram image: " + (error instanceof Error ? error.message : String(error)));
+        console.warn(`Could not snapshot Instagram image ${index + 1}: ` + (error instanceof Error ? error.message : String(error)));
+        images.push(imageUrl);
       }
     }
 
@@ -93,14 +104,14 @@ async function fetchLatestInstagramPost() {
         caption,
         publishedAt: Number.isFinite(timestamp) ? new Date(timestamp * 1000).toISOString() : "",
         isVideo: Boolean(post.is_video),
-        image: imageFile ? "./images/" + imageFile : imageUrl,
+        images,
+        image: images[0] || "",
       },
-      imageFile,
-      imageBytes,
+      downloadedImages,
     };
   } catch (error) {
     console.warn("Could not resolve the latest Instagram post: " + (error instanceof Error ? error.message : String(error)));
-    return { post: { permalink: "", caption: "", publishedAt: "", isVideo: false, image: "" }, imageFile: "", imageBytes: null };
+    return { post: { permalink: "", caption: "", publishedAt: "", isVideo: false, images: [], image: "" }, downloadedImages: [] };
   }
 }
 
@@ -149,7 +160,7 @@ await Promise.all([
   writeFile(resolve(distRoot, "api/data.json"), `${JSON.stringify(data)}\n`, "utf8"),
   writeFile(resolve(distRoot, "images/ascenso_ahcjpeg.jpeg"), heroPhoto),
   writeFile(resolve(distRoot, "api/instagram.json"), JSON.stringify(instagramSnapshot.post) + "\n", "utf8"),
-  ...(instagramSnapshot.imageBytes ? [writeFile(resolve(distRoot, "images", instagramSnapshot.imageFile), instagramSnapshot.imageBytes)] : []),
+  ...instagramSnapshot.downloadedImages.map(({ imageFile, imageBytes }) => writeFile(resolve(distRoot, "images", imageFile), imageBytes)),
   writeFile(resolve(distRoot, ".nojekyll"), ""),
 ]);
 console.log(`Built GitHub Pages snapshot in ${distRoot}`);
