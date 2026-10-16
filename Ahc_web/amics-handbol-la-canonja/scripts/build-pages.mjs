@@ -11,7 +11,10 @@ if (dirname(distRoot) !== projectRoot || distRoot === projectRoot) {
 async function fetchLatestInstagramPost() {
   try {
     const response = await fetch("https://www.instagram.com/amicshandbolcanonja/embed/", {
-      headers: { accept: "text/html,application/xhtml+xml" },
+      headers: {
+        accept: "text/html,application/xhtml+xml",
+        "user-agent": "Mozilla/5.0",
+      },
       signal: AbortSignal.timeout(15000),
     });
     if (!response.ok) throw new Error("Instagram returned HTTP " + response.status);
@@ -19,17 +22,85 @@ async function fetchLatestInstagramPost() {
     const html = await response.text();
     const mediaIndex = html.indexOf("graphql_media");
     if (mediaIndex < 0) throw new Error("Instagram did not return profile media");
-    const media = html.slice(mediaIndex, mediaIndex + 50000)
+    const media = html.slice(mediaIndex, mediaIndex + 80000)
       .replaceAll(String.fromCharCode(92) + '"', '"');
-    const shortcodes = [...media.matchAll(/"shortcode":"([A-Za-z0-9_-]+)"/g)]
-      .map((match) => match[1]);
-    const uniqueShortcodes = [...new Set(shortcodes)].slice(0, 1);
-    if (!uniqueShortcodes.length) throw new Error("Instagram did not return a post shortcode");
+    const markerIndex = media.indexOf('"shortcode_media":');
+    const objectStart = media.indexOf("{", markerIndex);
+    if (markerIndex < 0 || objectStart < 0) throw new Error("Instagram did not return a post");
 
-    return { permalink: "https://www.instagram.com/p/" + uniqueShortcodes[0] + "/" };
+    let depth = 0;
+    let inString = false;
+    let escaped = false;
+    let objectEnd = -1;
+    for (let index = objectStart; index < media.length; index += 1) {
+      const character = media[index];
+      if (inString) {
+        if (escaped) escaped = false;
+        else if (character === "\\") escaped = true;
+        else if (character === '"') inString = false;
+        continue;
+      }
+      if (character === '"') inString = true;
+      else if (character === "{") depth += 1;
+      else if (character === "}") {
+        depth -= 1;
+        if (depth === 0) {
+          objectEnd = index + 1;
+          break;
+        }
+      }
+    }
+    if (objectEnd < 0) throw new Error("Instagram returned incomplete post data");
+
+    const post = JSON.parse(media.slice(objectStart, objectEnd));
+    const shortcode = String(post.shortcode || "");
+    if (!/^[A-Za-z0-9_-]+$/.test(shortcode)) throw new Error("Instagram returned an invalid post link");
+    const decodeEscapes = (value) => String(value || "")
+      .replace(/\\u([0-9a-f]{4})/gi, (_, code) => String.fromCharCode(Number.parseInt(code, 16)))
+      .replace(/\\n/g, "\n")
+      .replace(/\\r/g, "\r")
+      .replace(/\\t/g, "\t")
+      .replace(/\\\//g, "/")
+      .replace(/\\\\/g, "\\");
+    const imageUrl = decodeEscapes(post.display_url || "");
+    const caption = decodeEscapes(post.edge_media_to_caption?.edges?.[0]?.node?.text).trim();
+    const timestamp = Number(post.taken_at_timestamp);
+    let imageBytes = null;
+    let imageFile = "";
+    if (imageUrl) {
+      try {
+        const parsedImageUrl = new URL(imageUrl);
+        if (parsedImageUrl.protocol !== "https:" || !parsedImageUrl.hostname.endsWith("cdninstagram.com")) {
+          throw new Error("Instagram returned an unexpected image host");
+        }
+        const imageResponse = await fetch(parsedImageUrl, {
+          headers: { accept: "image/avif,image/webp,image/*,*/*;q=0.8", "user-agent": "Mozilla/5.0", referer: "https://www.instagram.com/" },
+          signal: AbortSignal.timeout(20000),
+        });
+        const contentType = imageResponse.headers.get("content-type") || "";
+        if (!imageResponse.ok || !contentType.startsWith("image/")) throw new Error("Instagram image could not be downloaded");
+        imageBytes = Buffer.from(await imageResponse.arrayBuffer());
+        if (imageBytes.length > 15 * 1024 * 1024) throw new Error("Instagram image is too large to snapshot");
+        imageFile = contentType.includes("webp") ? "instagram-latest.webp" : contentType.includes("png") ? "instagram-latest.png" : "instagram-latest.jpg";
+      } catch (error) {
+        console.warn("Could not snapshot the latest Instagram image: " + (error instanceof Error ? error.message : String(error)));
+      }
+    }
+
+    return {
+      post: {
+        permalink: "https://www.instagram.com/p/" + shortcode + "/",
+        caption,
+        publishedAt: Number.isFinite(timestamp) ? new Date(timestamp * 1000).toISOString() : "",
+        isVideo: Boolean(post.is_video),
+        image: imageFile ? "./images/" + imageFile : imageUrl,
+      },
+      imageFile,
+      imageBytes,
+    };
   } catch (error) {
     console.warn("Could not resolve the latest Instagram post: " + (error instanceof Error ? error.message : String(error)));
-    return { permalink: "" };
+    return { post: { permalink: "", caption: "", publishedAt: "", isVideo: false, image: "" }, imageFile: "", imageBytes: null };
   }
 }
 
@@ -66,7 +137,7 @@ const response = await worker.fetch(new Request("https://amics-hc.invalid/api/da
 if (!response.ok) throw new Error(`Could not fetch club data for the Pages snapshot (${response.status})`);
 const data = await response.json();
 if (!Array.isArray(data.teams)) throw new Error("The data endpoint returned an invalid payload");
-const instagramPost = await fetchLatestInstagramPost();
+const instagramSnapshot = await fetchLatestInstagramPost();
 
 await rm(distRoot, { recursive: true, force: true });
 await Promise.all([
@@ -77,7 +148,8 @@ await Promise.all([
   writeFile(resolve(distRoot, "index.html"), page, "utf8"),
   writeFile(resolve(distRoot, "api/data.json"), `${JSON.stringify(data)}\n`, "utf8"),
   writeFile(resolve(distRoot, "images/ascenso_ahcjpeg.jpeg"), heroPhoto),
-  writeFile(resolve(distRoot, "api/instagram.json"), JSON.stringify(instagramPost) + "\n", "utf8"),
+  writeFile(resolve(distRoot, "api/instagram.json"), JSON.stringify(instagramSnapshot.post) + "\n", "utf8"),
+  ...(instagramSnapshot.imageBytes ? [writeFile(resolve(distRoot, "images", instagramSnapshot.imageFile), instagramSnapshot.imageBytes)] : []),
   writeFile(resolve(distRoot, ".nojekyll"), ""),
 ]);
 console.log(`Built GitHub Pages snapshot in ${distRoot}`);
