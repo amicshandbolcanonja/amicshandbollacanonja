@@ -494,9 +494,28 @@
       .standings-section > summary { gap: 8px; }
       .standings-summary-title { font-size: 17px; }
       .standings-summary-meta { max-width: 130px; font-size: 9px; }
-      .standings-scroll { margin-inline: -2px; }
-      .standings-table { min-width: 540px; font-size: 10px; }
-      .standings-table th, .standings-table td { padding: 11px 8px; }
+      .standings-scroll { margin-inline: 0; overflow: visible; }
+      .standings-table { display: block; width: 100%; min-width: 0; font-size: 10px; text-align: center; }
+      .standings-table thead { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+      .standings-table tbody { display: block; }
+      .standings-table tbody tr { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 7px 4px; padding: 11px 8px; border-bottom: 1px solid rgba(25,24,54,.08); }
+      .standings-table th, .standings-table td { min-width: 0; padding: 0; border: 0; white-space: normal; }
+      .standings-table th:first-child, .standings-table td:first-child { width: auto; text-align: center; }
+      .standings-table th:nth-child(2), .standings-table td:nth-child(2) { min-width: 0; text-align: left; }
+      .standings-table tbody td:first-child { grid-column: 1; grid-row: 1; align-self: center; color: var(--blue); font-size: 12px; font-weight: 900; }
+      .standings-table tbody th:nth-child(2) { grid-column: 2 / 7; grid-row: 1; align-self: center; overflow-wrap: anywhere; font-size: 11px; }
+      .standings-table tbody td:nth-child(3) { grid-column: 1; grid-row: 2; }
+      .standings-table tbody td:nth-child(4) { grid-column: 2; grid-row: 2; }
+      .standings-table tbody td:nth-child(5) { grid-column: 3; grid-row: 2; }
+      .standings-table tbody td:nth-child(6) { grid-column: 4; grid-row: 2; }
+      .standings-table tbody td:nth-child(7) { grid-column: 5; grid-row: 2; }
+      .standings-table tbody td:nth-child(8) { grid-column: 6; grid-row: 2; }
+      .standings-table tbody td:nth-child(9) { grid-column: 7; grid-row: 2; }
+      .standings-table tbody td:last-child { display: flex; grid-column: 7; grid-row: 1; align-self: center; flex-direction: column; align-items: flex-end; justify-content: center; color: var(--blue); font-size: 12px; font-weight: 900; }
+      .standings-table tbody td:nth-child(n+3):nth-child(-n+9) { display: flex; flex-direction: column; align-items: center; font-size: 10px; font-weight: 750; }
+      .standings-table tbody td:nth-child(n+3):nth-child(-n+9)::before, .standings-table tbody td:last-child::before { content: attr(data-label); margin-bottom: 2px; color: var(--muted); font-size: 8px; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; }
+      .standings-table tbody tr:last-child { border-bottom: 0; }
+      .standings-table tbody tr.is-club { border-radius: 8px; }
     }
   </style>
 </head>
@@ -913,7 +932,7 @@
         const table = standings.length
           ? '<div class="standings-scroll" tabindex="0" aria-label="' + escapeHtml(labels.standings) + '"><table class="standings-table"><thead><tr>' +
             '<th scope="col">' + escapeHtml(labels.position) + '</th><th scope="col">' + escapeHtml(labels.team) + '</th><th scope="col">' + escapeHtml(labels.playedShort) + '</th><th scope="col">' + escapeHtml(labels.winsShort) + '</th><th scope="col">' + escapeHtml(labels.drawsShort) + '</th><th scope="col">' + escapeHtml(labels.lossesShort) + '</th><th scope="col">' + escapeHtml(labels.goalsForShort) + '</th><th scope="col">' + escapeHtml(labels.goalsAgainstShort) + '</th><th scope="col">' + escapeHtml(labels.differenceShort) + '</th><th scope="col">' + escapeHtml(labels.pointsShort) + '</th>' +
-            '</tr></thead><tbody>' + standings.map((entry) => '<tr' + (entry.isClub ? ' class="is-club" aria-current="true"' : '') + '><td>' + escapeHtml(entry.position) + '</td><th scope="row">' + escapeHtml(entry.name) + '</th><td>' + escapeHtml(entry.played) + '</td><td>' + escapeHtml(entry.wins) + '</td><td>' + escapeHtml(entry.draws) + '</td><td>' + escapeHtml(entry.losses) + '</td><td>' + escapeHtml(entry.goalsFor) + '</td><td>' + escapeHtml(entry.goalsAgainst) + '</td><td>' + escapeHtml(entry.goalDifference) + '</td><td><strong>' + escapeHtml(entry.points) + '</strong></td></tr>').join("") + '</tbody></table></div>'
+            '</tr></thead><tbody>' + standings.map((entry) => '<tr' + (entry.isClub ? ' class="is-club" aria-current="true"' : '') + '><td>' + escapeHtml(entry.position) + '</td><th scope="row">' + escapeHtml(entry.name) + '</th><td data-label="' + escapeHtml(labels.playedShort) + '">' + escapeHtml(entry.played) + '</td><td data-label="' + escapeHtml(labels.winsShort) + '">' + escapeHtml(entry.wins) + '</td><td data-label="' + escapeHtml(labels.drawsShort) + '">' + escapeHtml(entry.draws) + '</td><td data-label="' + escapeHtml(labels.lossesShort) + '">' + escapeHtml(entry.losses) + '</td><td data-label="' + escapeHtml(labels.goalsForShort) + '">' + escapeHtml(entry.goalsFor) + '</td><td data-label="' + escapeHtml(labels.goalsAgainstShort) + '">' + escapeHtml(entry.goalsAgainst) + '</td><td data-label="' + escapeHtml(labels.differenceShort) + '">' + escapeHtml(entry.goalDifference) + '</td><td data-label="' + escapeHtml(labels.pointsShort) + '"><strong>' + escapeHtml(entry.points) + '</strong></td></tr>').join("") + '</tbody></table></div>'
           : '<p class="standings-unavailable">' + escapeHtml(labels.noStandings) + (sourceUrl ? ' <a href="' + escapeHtml(sourceUrl) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(labels.viewOfficial) + ' ↗</a>' : "") + '</p>';
         return '<details class="standings-section"><summary><h4 class="standings-summary-title">' + escapeHtml(labels.standings) + '</h4><span class="standings-summary-meta">' + escapeHtml(summary) + '</span><span class="standings-chevron" aria-hidden="true">⌄</span></summary><div class="standings-content">' + sourceLink + table + '</div></details>';
       }
