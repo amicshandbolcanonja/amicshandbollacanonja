@@ -213,6 +213,7 @@
     .reveal { animation: rise .65s both; }
     @keyframes rise { from { opacity: 0; transform: translateY(13px); } to { opacity: 1; transform: translateY(0); } }
     @media (max-width: 850px) {
+      html { overflow-x: clip; }
       .menu-toggle { display: inline-flex; }
       .nav { position: absolute; top: calc(100% + 8px); right: 0; left: 0; display: none; flex-direction: column; align-items: stretch; gap: 0; padding: 8px 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--white); box-shadow: 0 16px 40px rgba(25,24,54,.12); }
       .nav.is-open { display: flex; }
@@ -229,7 +230,10 @@
       .social-section { grid-template-columns: 1fr; gap: 27px; padding-top: 0; }
       .instagram-card { padding: 12px; }
       .instagram-publication { flex-direction: column; }
-      .instagram-post-media-link, .instagram-post-placeholder { flex: none; width: 100%; max-width: 100%; aspect-ratio: 16 / 10; }
+      .instagram-post-media-link, .instagram-post-placeholder { flex: none; width: 100%; max-width: 100%; }
+      .instagram-post-media-link { aspect-ratio: auto; }
+      .instagram-post-image { position: static; inset: auto; height: auto; object-fit: contain; }
+      .instagram-post-placeholder { aspect-ratio: 16 / 10; }
       .instagram-caption-panel { padding: 16px; }
       .instagram-caption-text { font-size: 12px; }
       .instagram-post-status { min-height: 190px; }
