@@ -26,11 +26,11 @@ jobs:
           node-version: 22
       - name: Build static site and current calendar data
         run: npm run build:pages
-        working-directory: amics-handbol-la-canonja
+        working-directory: Ahc_web/amics-handbol-la-canonja
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: amics-handbol-la-canonja/dist
+          path: Ahc_web/amics-handbol-la-canonja/dist
 
   deploy:
     needs: build

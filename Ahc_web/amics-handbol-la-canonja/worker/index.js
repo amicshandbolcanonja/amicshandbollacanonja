@@ -128,6 +128,55 @@ function parseStaff(html) {
   return staff;
 }
 
+function parseStandings(html, team) {
+  const tables = [...html.matchAll(/<table\b[^>]*>[\s\S]*?<\/table>/gi)].map((match) => match[0]);
+  const clubName = (team.clubLabel || "Amics H.C.").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  let fallbackStandings = [];
+
+  for (const table of tables) {
+    const rows = [...table.matchAll(/<tr\b[^>]*>[\s\S]*?<\/tr>/gi)].map((match) => match[0]);
+    const standings = rows.flatMap((row) => {
+      const cells = [...row.matchAll(/<t[dh]\b[^>]*>[\s\S]*?<\/t[dh]>/gi)].map((match) => match[0]);
+      if (cells.length < 9) return [];
+
+      const linkedTeamId = row.match(/<a\b[^>]*href=["'][^"']*\bid_equipo=(\d+)/i)?.[1] ?? "";
+      const teamCellIndex = cells.findIndex((cell) => /<a\b[^>]*href=["'][^"']*\bid_equipo=\d+/i.test(cell) && textFromHtml(cell));
+      const teamCell = teamCellIndex >= 0 ? cells[teamCellIndex] : "";
+      const teamName = textFromHtml(teamCell);
+      const normalizedName = teamName.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
+      const isClub = linkedTeamId === team.id || (clubName && (normalizedName.includes(clubName) || normalizedName.includes("amicshc")));
+      const position = Number.parseInt(textFromHtml(cells[0]).match(/^\s*(\d+)/)?.[1] ?? "", 10);
+      if (!teamName || !Number.isFinite(position)) return [];
+
+      // The classification table contains form and movement columns too. Read
+      // the numeric statistics after the team link so those decorative cells
+      // do not affect the points and match totals.
+      const stats = cells.slice(teamCellIndex >= 0 ? teamCellIndex + 1 : 1)
+        .map((cell) => textFromHtml(cell).match(/^\s*(-?\d+)\b/)?.[1])
+        .filter((value) => value !== undefined)
+        .map(Number);
+      if (stats.length < 8) return [];
+
+      return [{
+        position,
+        name: teamName,
+        isClub,
+        points: stats[0],
+        played: stats[1],
+        wins: stats[2],
+        draws: stats[3],
+        losses: stats[4],
+        goalsFor: stats[5],
+        goalsAgainst: stats[6],
+        goalDifference: stats[7],
+      }];
+    });
+    if (standings.length && standings.some((entry) => entry.isClub)) return standings;
+    if (!fallbackStandings.length && standings.length) fallbackStandings = standings;
+  }
+  return fallbackStandings;
+}
+
 function parseTeamScorers(html, team) {
   const table = html.match(/<table\b[^>]*\btabla_goleadores\b[^>]*>[\s\S]*?<\/table>/i)?.[0] ?? "";
   const rows = [...table.matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)].map((match) => match[1]);
@@ -347,6 +396,20 @@ function statisticsUrlForTeam(team) {
   return SOURCE_ORIGIN + "/estadisticas.php?" + params.toString();
 }
 
+function classificationUrlForTeam(team, tournament = team.tournament) {
+  const params = new URLSearchParams({
+    id: tournament ?? "",
+    id_ambito: "0",
+    id_categoria: team.category,
+    id_competicion: team.competition,
+    id_superficie: "1",
+    id_territorial: "17",
+    iframe: "0",
+    seleccion: "0",
+  });
+  return `${SOURCE_ORIGIN}/clasificacion.php?${params}`;
+}
+
 function parseTournamentOptions(html) {
   const select = html.match(/<select\b[^>]*\bid=["']torneos["'][^>]*>[\s\S]*?<\/select>/i)?.[0] ?? "";
   const options = [...select.matchAll(/<option\b([^>]*)>/gi)].flatMap((match) => {
@@ -406,13 +469,20 @@ async function buildData() {
     const roster = rosterHtml ? parseRoster(rosterHtml) : { players: [], guests: [] };
     const schedule = scheduleResult.status === "fulfilled" ? scheduleResult.value : { fixtures: [], tournamentId: "" };
     const calendarFixtures = schedule.fixtures;
-    const formalActas = await fetchFormalActas(schedule.tournamentId);
+    const [standingsResult, formalActas] = await Promise.all([
+      schedule.tournamentId ? fetchHtml(classificationUrlForTeam(team, schedule.tournamentId)).catch(() => "") : Promise.resolve(""),
+      fetchFormalActas(schedule.tournamentId),
+    ]);
     const scorersHtml = scorersResult.status === "fulfilled" ? scorersResult.value : "";
     const scorers = scorersHtml ? parseTeamScorers(scorersHtml, team) : [];
     return {
       ...team,
       clubLabel: sourceRow?.clubLabel ?? "Amics H.C.",
       categoryLabel: sourceRow?.categoryLabel ?? "",
+      teamUrl: pageUrlForTeam(team),
+      standingsUrl: classificationUrlForTeam(team, schedule.tournamentId),
+      tournamentId: schedule.tournamentId,
+      standings: parseStandings(standingsResult || rosterHtml, { ...team, clubLabel: sourceRow?.clubLabel ?? "Amics H.C." }),
       players: roster.players,
       guests: roster.guests,
       staff: rosterHtml ? parseStaff(rosterHtml) : [],

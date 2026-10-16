@@ -445,6 +445,59 @@
       .fixture-game { grid-template-columns: minmax(0, 1fr) 40px minmax(0, 1fr); }
     }
 
+    .team-toolbar { display: flex; align-items: center; gap: 13px; margin: 0 0 18px; }
+    .team-filter-label { color: rgba(255,255,255,.65); font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+    .team-filters { display: inline-flex; gap: 4px; padding: 4px; border: 1px solid rgba(255,255,255,.2); border-radius: 999px; }
+    .team-filter-button { display: inline-flex; min-height: 38px; align-items: center; justify-content: center; gap: 7px; padding: 0 14px; border: 0; border-radius: 999px; background: transparent; color: rgba(255,255,255,.74); font-size: 11px; font-weight: 800; cursor: pointer; }
+    .team-filter-button[aria-pressed="true"] { background: var(--white); color: var(--ink); }
+    .team-favorite-count { display: grid; min-width: 18px; height: 18px; place-items: center; padding-inline: 4px; border-radius: 99px; background: rgba(255,255,255,.14); font-size: 9px; }
+    .team-filter-button[aria-pressed="true"] .team-favorite-count { background: var(--lilac); color: var(--blue); }
+    .team-empty { margin: 0 0 20px; padding: 18px; border: 1px dashed rgba(255,255,255,.3); border-radius: 14px; color: rgba(255,255,255,.8); font-size: 13px; line-height: 1.6; }
+    .team-empty[hidden] { display: none; }
+    .team-favorite-indicator { display: inline-flex; align-items: center; gap: 5px; margin-top: 8px; color: #fff1a6; font-size: 9px; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; }
+    .schedule-actions { display: flex; flex: 0 0 auto; align-items: center; gap: 9px; }
+    .favorite-toolbar { display: flex; justify-content: flex-end; margin: -5px 0 15px; }
+    .team-favorite-toggle { display: inline-flex; min-height: 42px; align-items: center; justify-content: center; gap: 7px; padding: 0 13px; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--ink); font-size: 11px; font-weight: 850; cursor: pointer; }
+    .team-favorite-toggle:hover, .team-favorite-toggle[aria-pressed="true"] { border-color: var(--violet); background: #f0efff; color: var(--blue); }
+    .team-favorite-toggle-icon { color: var(--violet); font-size: 16px; line-height: 1; }
+    .standings-section { margin-top: 22px; padding: 18px 0 0; border-top: 1px solid var(--line); }
+    .standings-section > summary { display: flex; align-items: center; gap: 12px; cursor: pointer; list-style: none; }
+    .standings-section > summary::-webkit-details-marker { display: none; }
+    .standings-summary-title { margin: 0; color: var(--ink); font-size: 19px; font-weight: 850; letter-spacing: -.045em; }
+    .standings-summary-meta { margin-left: auto; color: var(--muted); font-size: 10px; font-weight: 750; text-align: right; }
+    .standings-chevron { color: var(--blue); font-size: 18px; transition: transform .2s; }
+    .standings-section[open] .standings-chevron { transform: rotate(180deg); }
+    .standings-content { margin-top: 14px; }
+    .standings-source { margin: 0 0 11px; color: var(--muted); font-size: 10px; }
+    .standings-source a { color: var(--blue); text-underline-offset: 3px; }
+    .standings-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--white); overscroll-behavior-inline: contain; scrollbar-color: var(--violet) #eeeaff; }
+    .standings-table { width: 100%; min-width: 570px; border-collapse: collapse; color: var(--ink); font-size: 10px; font-variant-numeric: tabular-nums; text-align: right; }
+    .standings-table th, .standings-table td { padding: 10px 9px; border-bottom: 1px solid rgba(25,24,54,.08); white-space: nowrap; }
+    .standings-table thead th { position: sticky; top: 0; background: #f0efff; color: var(--muted); font-size: 9px; font-weight: 850; letter-spacing: .04em; text-transform: uppercase; }
+    .standings-table th:first-child, .standings-table td:first-child { width: 36px; text-align: center; }
+    .standings-table th:nth-child(2), .standings-table td:nth-child(2) { min-width: 180px; text-align: left; }
+    .standings-table tbody th { font-weight: 750; }
+    .standings-table tbody tr:last-child th, .standings-table tbody tr:last-child td { border-bottom: 0; }
+    .standings-table tbody tr.is-club { background: #f0efff; color: var(--blue); }
+    .standings-table tbody tr.is-club th { font-weight: 900; }
+    .standings-unavailable { margin: 0; padding: 16px; border: 1px dashed rgba(25,24,54,.2); border-radius: 12px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .standings-unavailable a { color: var(--blue); font-weight: 800; text-underline-offset: 3px; }
+    @media (max-width: 650px) {
+      .team-toolbar { align-items: flex-start; flex-direction: column; gap: 8px; margin-bottom: 11px; }
+      .team-filter-button { min-height: 42px; padding-inline: 16px; font-size: 12px; }
+      .team-empty { margin-bottom: 14px; padding: 15px; font-size: 12px; }
+      .team-favorite-indicator { margin-top: 6px; font-size: 8px; }
+      .schedule-actions { width: 100%; justify-content: space-between; }
+      .favorite-toolbar { justify-content: flex-start; margin: -2px 0 14px; }
+      .team-favorite-toggle { min-height: 44px; padding-inline: 12px; }
+      .standings-section { margin-top: 19px; padding-top: 18px; }
+      .standings-section > summary { gap: 8px; }
+      .standings-summary-title { font-size: 17px; }
+      .standings-summary-meta { max-width: 130px; font-size: 9px; }
+      .standings-scroll { margin-inline: -2px; }
+      .standings-table { min-width: 540px; font-size: 10px; }
+      .standings-table th, .standings-table td { padding: 11px 8px; }
+    }
   </style>
 </head>
 <body>
@@ -519,7 +572,15 @@
           <div><p class="section-label" data-ca="02 / Equips" data-es="02 / Equipos">02 / Equips</p><h2 data-ca-html="Cada equip<br>fa <em>club.</em>" data-es-html="Cada equipo<br>hace <em>club.</em>">Cada equip<br>fa <em>club.</em></h2></div>
           <p data-ca="Tria una secció per veure el calendari de la temporada, amb les jornades i els partits a la mateixa pàgina." data-es="Elige una sección para ver el calendario de la temporada, con las jornadas y los partidos en esta misma página.">Tria una secció per veure el calendari de la temporada, amb les jornades i els partits a la mateixa pàgina.</p>
         </div>
+        <div class="team-toolbar">
+          <span class="team-filter-label" data-ca="Mostra" data-es="Mostrar">Mostra</span>
+          <div class="team-filters" role="group" aria-label="Filtrar equips" data-ca-label="Filtrar equips" data-es-label="Filtrar equipos">
+            <button class="team-filter-button" type="button" data-team-filter="all" aria-pressed="true"><span data-ca="Tots" data-es="Todos">Tots</span></button>
+            <button class="team-filter-button" type="button" data-team-filter="favorites" aria-pressed="false"><span data-ca="Favorits" data-es="Favoritos">Favorits</span><span class="team-favorite-count" id="team-favorite-count">0</span></button>
+          </div>
+        </div>
         <div class="team-grid team-tabs" id="team-tabs" role="tablist" aria-label="Seccions del club" data-ca-label="Seccions del club" data-es-label="Secciones del club"></div>
+        <p class="team-empty" id="team-empty" role="status" aria-live="polite" hidden></p>
       </div>
       <div class="shell section schedules" id="partits">
         <div class="sync-toolbar">
@@ -582,6 +643,9 @@
       const htmlNodes = [...document.querySelectorAll("[data-ca-html][data-es-html]")];
       const labelNodes = [...document.querySelectorAll("[data-ca-label][data-es-label]")];
       const tabsNode = document.getElementById("team-tabs");
+      const teamFilterButtons = [...document.querySelectorAll("[data-team-filter]")];
+      const favoriteCountNode = document.getElementById("team-favorite-count");
+      const teamEmptyNode = document.getElementById("team-empty");
       const panelsNode = document.getElementById("team-panels");
       const statusNode = document.getElementById("sync-status");
       const refreshButton = document.getElementById("refresh-data");
@@ -591,9 +655,26 @@
       const instagramPostNode = document.getElementById("instagram-post");
       const instagramLatestLink = document.getElementById("instagram-latest-link");
       const instagramProfileUrl = "https://www.instagram.com/amicshandbolcanonja/";
+      function readSavedValue(key) {
+        try { return localStorage.getItem(key) || ""; } catch { return ""; }
+      }
+      function readSavedFavorites() {
+        try {
+          const stored = JSON.parse(localStorage.getItem("ahc-favorite-teams") || "[]");
+          return new Set(Array.isArray(stored) ? stored.filter((key) => typeof key === "string") : []);
+        } catch { return new Set(); }
+      }
+      function saveFavoriteTeams() {
+        try { localStorage.setItem("ahc-favorite-teams", JSON.stringify([...favoriteTeams])); } catch {}
+      }
+      function saveActiveTeam() {
+        try { localStorage.setItem("ahc-active-team", activeTeamKey); } catch {}
+      }
       let language = "ca";
       let siteData = null;
-      let activeTeamKey = "";
+      let activeTeamKey = readSavedValue("ahc-active-team");
+      let favoriteTeams = readSavedFavorites();
+      let teamFilter = readSavedValue("ahc-team-filter") === "favorites" ? "favorites" : "all";
       const selectedRounds = {};
       let lastLoad = 0;
       let loading = false;
@@ -623,6 +704,19 @@
         noPlayers: "La plantilla aún no está publicada.", update: "Consulta automática cada 5 minutos mientras la página está abierta.",
         unavailable: "No se ha podido consultar iSquad. Vuelve a intentarlo dentro de unos minutos.", loading: "Conectando con los resultados oficiales…",
         updated: "Actualizado", refreshing: "Actualizando…", refresh: "Actualizar", source: "Datos de temporada 2026/27"
+      };
+      const teamWords = () => language === "ca" ? {
+        all: "Tots", favorites: "Favorits", favorite: "Favorit", addFavorite: "Fixar equip", removeFavorite: "Treure de favorits",
+        filterLabel: "Filtrar equips", noFavorites: "Encara no tens equips favorits. Mostra tots els equips i fixa els que vols seguir.",
+        standings: "Classificació", team: "Equip", position: "Pos.", playedShort: "PJ", winsShort: "PG", drawsShort: "PE", lossesShort: "PP",
+        goalsForShort: "GF", goalsAgainstShort: "GC", differenceShort: "DG", pointsShort: "Pts", teams: "equips", noStandings: "La classificació encara no està disponible.",
+        currentStanding: (position, points) => "Posició " + position + " · " + points + " pts", viewOfficial: "Veure classificació oficial"
+      } : {
+        all: "Todos", favorites: "Favoritos", favorite: "Favorito", addFavorite: "Fijar equipo", removeFavorite: "Quitar de favoritos",
+        filterLabel: "Filtrar equipos", noFavorites: "Todavía no tienes equipos favoritos. Muestra todos los equipos y fija los que quieres seguir.",
+        standings: "Clasificación", team: "Equipo", position: "Pos.", playedShort: "PJ", winsShort: "PG", drawsShort: "PE", lossesShort: "PP",
+        goalsForShort: "GF", goalsAgainstShort: "GC", differenceShort: "DG", pointsShort: "Pts", teams: "equipos", noStandings: "La clasificación todavía no está disponible.",
+        currentStanding: (position, points) => "Posición " + position + " · " + points + " pts", viewOfficial: "Ver clasificación oficial"
       };
 
       function updateStaticLanguage() {
@@ -763,14 +857,32 @@
 
       function renderTabs() {
         if (!siteData?.teams?.length) return;
-        if (!siteData.teams.some((team) => team.key === activeTeamKey)) activeTeamKey = siteData.teams[0].key;
-        tabsNode.innerHTML = siteData.teams.map((team, index) => {
+        const validKeys = new Set(siteData.teams.map((team) => team.key));
+        favoriteTeams = new Set([...favoriteTeams].filter((key) => validKeys.has(key)));
+        saveFavoriteTeams();
+        const visibleTeams = siteData.teams.filter((team) => teamFilter === "all" || favoriteTeams.has(team.key));
+        const labels = teamWords();
+        favoriteCountNode.textContent = String(favoriteTeams.size);
+        tabsNode.setAttribute("aria-label", labels.filterLabel);
+        teamFilterButtons.forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.teamFilter === teamFilter)));
+        teamEmptyNode.hidden = visibleTeams.length > 0;
+        teamEmptyNode.textContent = visibleTeams.length ? "" : labels.noFavorites;
+        if (!visibleTeams.length) {
+          tabsNode.innerHTML = "";
+          return;
+        }
+        if (!visibleTeams.some((team) => team.key === activeTeamKey)) {
+          activeTeamKey = visibleTeams[0].key;
+          saveActiveTeam();
+        }
+        tabsNode.innerHTML = visibleTeams.map((team, index) => {
           const selected = team.key === activeTeamKey;
           const title = language === "ca" ? team.nameCa : team.nameEs;
           const competition = language === "ca" ? team.competitionCa : team.competitionEs;
+          const favoriteIndicator = favoriteTeams.has(team.key) ? '<span class="team-favorite-indicator"><span aria-hidden="true">★</span> ' + escapeHtml(labels.favorite) + '</span>' : "";
           return '<button class="team-card team-tab" type="button" role="tab" id="tab-' + escapeHtml(team.key) + '" aria-controls="schedule-' + escapeHtml(team.key) + '" aria-selected="' + selected + '" tabindex="' + (selected ? '0' : '-1') + '" data-team-tab="' + escapeHtml(team.key) + '">' +
             '<span class="team-index"><span>' + escapeHtml(words().season) + ' · ' + escapeHtml(siteData.season) + '</span><span>' + String(index + 1).padStart(2, "0") + '</span></span>' +
-            '<span class="team-card-copy"><h3>' + escapeHtml(title) + '</h3><p>' + escapeHtml(competition) + '</p></span></button>';
+            '<span class="team-card-copy"><h3>' + escapeHtml(title) + '</h3><p>' + escapeHtml(competition) + '</p>' + favoriteIndicator + '</span></button>';
         }).join("");
         [...tabsNode.querySelectorAll("[data-team-tab]")].forEach((tab, index, tabs) => {
           tab.addEventListener("click", () => selectTeam(tab.dataset.teamTab));
@@ -787,10 +899,36 @@
         });
       }
 
+      function renderStandings(team) {
+        const labels = teamWords();
+        const standings = team.standings || [];
+        const clubStanding = standings.find((entry) => entry.isClub);
+        const summary = clubStanding
+          ? labels.currentStanding(clubStanding.position, clubStanding.points)
+          : standings.length + " " + labels.teams;
+        const sourceUrl = team.standingsUrl || team.teamUrl || "";
+        const sourceLink = sourceUrl
+          ? '<p class="standings-source"><a href="' + escapeHtml(sourceUrl) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(labels.viewOfficial) + ' ↗</a></p>'
+          : "";
+        const table = standings.length
+          ? '<div class="standings-scroll" tabindex="0" aria-label="' + escapeHtml(labels.standings) + '"><table class="standings-table"><thead><tr>' +
+            '<th scope="col">' + escapeHtml(labels.position) + '</th><th scope="col">' + escapeHtml(labels.team) + '</th><th scope="col">' + escapeHtml(labels.playedShort) + '</th><th scope="col">' + escapeHtml(labels.winsShort) + '</th><th scope="col">' + escapeHtml(labels.drawsShort) + '</th><th scope="col">' + escapeHtml(labels.lossesShort) + '</th><th scope="col">' + escapeHtml(labels.goalsForShort) + '</th><th scope="col">' + escapeHtml(labels.goalsAgainstShort) + '</th><th scope="col">' + escapeHtml(labels.differenceShort) + '</th><th scope="col">' + escapeHtml(labels.pointsShort) + '</th>' +
+            '</tr></thead><tbody>' + standings.map((entry) => '<tr' + (entry.isClub ? ' class="is-club" aria-current="true"' : '') + '><td>' + escapeHtml(entry.position) + '</td><th scope="row">' + escapeHtml(entry.name) + '</th><td>' + escapeHtml(entry.played) + '</td><td>' + escapeHtml(entry.wins) + '</td><td>' + escapeHtml(entry.draws) + '</td><td>' + escapeHtml(entry.losses) + '</td><td>' + escapeHtml(entry.goalsFor) + '</td><td>' + escapeHtml(entry.goalsAgainst) + '</td><td>' + escapeHtml(entry.goalDifference) + '</td><td><strong>' + escapeHtml(entry.points) + '</strong></td></tr>').join("") + '</tbody></table></div>'
+          : '<p class="standings-unavailable">' + escapeHtml(labels.noStandings) + (sourceUrl ? ' <a href="' + escapeHtml(sourceUrl) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(labels.viewOfficial) + ' ↗</a>' : "") + '</p>';
+        return '<details class="standings-section"><summary><h4 class="standings-summary-title">' + escapeHtml(labels.standings) + '</h4><span class="standings-summary-meta">' + escapeHtml(summary) + '</span><span class="standings-chevron" aria-hidden="true">⌄</span></summary><div class="standings-content">' + sourceLink + table + '</div></details>';
+      }
+
+      function toggleFavorite(teamKey) {
+        if (favoriteTeams.has(teamKey)) favoriteTeams.delete(teamKey);
+        else favoriteTeams.add(teamKey);
+        saveFavoriteTeams();
+        renderData();
+      }
+
       function renderPanels() {
         if (!siteData?.teams?.length) return;
         const panels = siteData.teams.map((team) => {
-          const active = team.key === activeTeamKey;
+          const active = team.key === activeTeamKey && (teamFilter === "all" || favoriteTeams.has(team.key));
           const title = language === "ca" ? team.nameCa : team.nameEs;
           const competition = language === "ca" ? team.competitionCa : team.competitionEs;
           const fixtures = team.fixtures || [];
@@ -844,9 +982,13 @@
           const staff = team.staff?.length
             ? '<ul class="staff-grid" aria-label="' + escapeHtml(staffTitle) + '">' + team.staff.map((member) => '<li class="staff-member"><strong>' + escapeHtml(member.name) + '</strong><span>' + escapeHtml(staffRoleLabel(member.role)) + '</span></li>').join("") + '</ul>'
             : '<p class="calendar-note">' + escapeHtml(staffEmpty) + '</p>';
+          const isFavorite = favoriteTeams.has(team.key);
+          const favoriteLabel = isFavorite ? teamWords().removeFavorite : teamWords().addFavorite;
+          const favoriteToolbar = '<div class="favorite-toolbar"><button class="team-favorite-toggle" type="button" data-team-favorite="' + escapeHtml(team.key) + '" aria-pressed="' + isFavorite + '"><span class="team-favorite-toggle-icon" aria-hidden="true">' + (isFavorite ? '★' : '☆') + '</span><span>' + escapeHtml(favoriteLabel) + '</span></button></div>';
+          const standingsMarkup = renderStandings(team);
           return '<section class="schedule-panel" role="tabpanel" id="schedule-' + escapeHtml(team.key) + '" aria-labelledby="tab-' + escapeHtml(team.key) + '"' + (active ? '' : ' hidden') + '>' +
             '<div class="schedule-heading"><div><p class="section-label">' + escapeHtml(words().calendar) + ' · ' + escapeHtml(siteData.season) + '</p><h3>' + escapeHtml(title) + '</h3><p>' + escapeHtml(competition) + '</p></div><span class="schedule-stamp">' + fixtures.length + ' ' + escapeHtml(words().fixtures) + '</span></div>' +
-            roundNavigation + calendar + '<p class="calendar-note">' + escapeHtml(words().update) + '</p>' +
+            favoriteToolbar + roundNavigation + calendar + '<p class="calendar-note">' + escapeHtml(words().update) + '</p>' + standingsMarkup +
             '<details class="roster-section"><summary class="roster-heading"><h4>' + escapeHtml(words().roster) + '</h4><span class="roster-summary-meta">' + rosterPlayers.length + ' ' + escapeHtml(words().players) + '</span><span class="roster-chevron" aria-hidden="true">⌄</span></summary><div class="roster-content">' + scorerSourceNote + players +
             '<div class="staff-section"><div class="roster-heading"><h4>' + escapeHtml(staffTitle) + '</h4><span>' + (team.staff?.length || 0) + ' ' + escapeHtml(staffCount) + '</span></div>' + staff + '</div></div></details></section>';
         });
@@ -866,6 +1008,7 @@
           nextControl?.focus({ preventScroll: true });
           if (window.matchMedia("(min-width: 651px)").matches) panel?.querySelector('[data-round="' + nextFixture.round + '"]')?.scrollIntoView({ behavior: "smooth", block: "nearest" });
         }));
+        panelsNode.querySelectorAll("[data-team-favorite]").forEach((button) => button.addEventListener("click", () => toggleFavorite(button.dataset.teamFavorite)));
       }
 
       function renderData() {
@@ -876,6 +1019,7 @@
 
       function selectTeam(key, moveFocus = false) {
         activeTeamKey = key;
+        saveActiveTeam();
         renderData();
         if (moveFocus) tabsNode.querySelector('[data-team-tab="' + CSS.escape(key) + '"]')?.focus();
         else document.getElementById("schedule-" + key)?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -919,6 +1063,11 @@
           setStatus(words().updated + " " + updated + " · " + words().update);
         }
         try { localStorage.setItem("ahc-language", language); } catch {}
+      }));
+      teamFilterButtons.forEach((button) => button.addEventListener("click", () => {
+        teamFilter = button.dataset.teamFilter === "favorites" ? "favorites" : "all";
+        try { localStorage.setItem("ahc-team-filter", teamFilter); } catch {}
+        renderData();
       }));
       refreshButton.addEventListener("click", () => loadData(true));
       menuButton?.addEventListener("click", () => {

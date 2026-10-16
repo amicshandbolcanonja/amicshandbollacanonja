@@ -2,6 +2,8 @@
 
 La página se publica como un Cloudflare Worker porque también sirve `/api/data`, que obtiene los equipos y calendarios actuales.
 
+Ejecuta estos comandos desde `Ahc_web/amics-handbol-la-canonja`.
+
 1. Instala las dependencias con `npm install`.
 2. Inicia sesión en Cloudflare con `npx wrangler login`.
 3. Ejecuta `npm run deploy`.
