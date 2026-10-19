@@ -202,7 +202,7 @@ function parseTopScorers(scorers) {
 }
 
 function parseDate(value) {
-  const match = value.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  const match = value.match(/(\d{1,2})[/-](\d{1,2})[/-](\d{4})/);
   if (!match) return "";
   return `${match[3]}-${match[2].padStart(2, "0")}-${match[1].padStart(2, "0")}`;
 }
@@ -235,7 +235,7 @@ function fixtureFromRow(row, team, scoreClass, dateClass, venueClass, badgeUrls 
     id: match[1].match(/id_equipo=(\d+)/i)?.[1] ?? "",
     name: textFromHtml(match[2]),
   }));
-  if (sides.length < 2 || !sides.some((side) => side.id === team.id)) return null;
+  if (sides.length < 2 || (team && !sides.some((side) => side.id === team.id))) return null;
 
   const scoreCell = row.match(new RegExp(`<td\\b[^>]*class=["']${scoreClass}["'][^>]*>([\\s\\S]*?)<\\/td>`, "i"))?.[1] ?? "";
   const score = textFromHtml(scoreCell).match(/(\d+)\s*[-–]\s*(\d+)/);
@@ -249,10 +249,12 @@ function fixtureFromRow(row, team, scoreClass, dateClass, venueClass, badgeUrls 
   const venue = textFromHtml(venueCell);
   const rawState = row.match(/data-estado=["']([^"']+)["']/i)?.[1] ?? "";
   const stateText = `${rawState} ${textFromHtml(row)}`.toLowerCase();
+  const actaMatchId = row.match(/mostrarActaFormal\((\d+)\)/i)?.[1] ?? "";
+  const explicitFinal = /finaliz|terminad|played|homologad/.test(stateText);
+  const confirmedScore = score && (Number(score[1]) + Number(score[2]) > 0 || explicitFinal || actaMatchId);
   const state = /suspend|ajorn|aplaz|cancel|anul/.test(stateText)
     ? "suspended"
-    : score || /finaliz|terminad|played/.test(stateText) ? "played" : "pending";
-  const actaMatchId = row.match(/mostrarActaFormal\((\d+)\)/i)?.[1] ?? "";
+    : confirmedScore || explicitFinal ? "played" : "pending";
   return {
     homeId: sides[0].id,
     homeName: sides[0].name,
@@ -284,15 +286,47 @@ function parseTeamFixtures(html, team) {
 }
 
 function parseCalendar(html, team) {
+  return parseLeagueCalendar(html).flatMap((round) => round.fixtures.filter((fixture) => fixture.homeId === team.id || fixture.awayId === team.id));
+}
+
+export function parseLeagueCalendar(html) {
   const rows = [...html.matchAll(/<tr\b[^>]*>[\s\S]*?<\/tr>/gi)].map((match) => match[0]);
   const badgeUrls = parseTeamBadgeUrls(html);
-  let sourceOrder = 0;
-  const fixtures = rows.flatMap((row) => {
-    if (!row.includes(`id_equipo=${team.id}`) || !/class=["']fecha["']/i.test(row)) return [];
-    const fixture = fixtureFromRow(row, team, "marcador", "fecha", "lugar", badgeUrls);
-    return fixture ? [{ ...fixture, sourceOrder: sourceOrder++ }] : [];
-  });
-  return numberFixtures(fixtures);
+  const rounds = new Map();
+  let currentRound = null;
+  for (const row of rows) {
+    const heading = textFromHtml(row).match(/^JORNADA\s+(\d+)\b(.*)$/i);
+    if (heading) {
+      const number = Number(heading[1]);
+      if (!rounds.has(number)) rounds.set(number, { number, date: parseDate(heading[2]), fixtures: [], byes: [] });
+      currentRound = rounds.get(number);
+      continue;
+    }
+    if (!currentRound) continue;
+    const namesBlock = row.match(/<div\b[^>]*class=["']nombres-equipos["'][^>]*>([\s\S]*?)<\/div>/i)?.[1] || "";
+    if (/\bdescansa\b|\bdescans\b/i.test(textFromHtml(namesBlock))) {
+      const names = [...namesBlock.matchAll(/<a\b[^>]*>([\s\S]*?)<\/a>/gi)].map((match) => textFromHtml(match[1])).filter((name) => name && !/\bdescansa\b|\bdescans\b/i.test(name));
+      currentRound.byes = [...new Set([...currentRound.byes, ...names])];
+      continue;
+    }
+    if (!/class=["']fecha["']/i.test(row)) continue;
+    const fixture = fixtureFromRow(row, null, "marcador", "fecha", "lugar", badgeUrls);
+    if (fixture && !currentRound.fixtures.some((item) => item.homeId === fixture.homeId && item.awayId === fixture.awayId)) {
+      currentRound.fixtures.push({ ...fixture, round: currentRound.number });
+    }
+  }
+  const result = [...rounds.values()].sort((a, b) => a.number - b.number);
+  const clubs = new Map(result.flatMap((round) => round.fixtures.flatMap((fixture) => [[fixture.homeId, fixture.homeName], [fixture.awayId, fixture.awayName]])));
+  // iSquad omits bye rows in odd-sized groups. Only infer a bye when the
+  // round has the expected number of fixtures for the complete group.
+  if (clubs.size % 2 === 1 && clubs.size > 1) {
+    for (const round of result) {
+      if (round.fixtures.length !== Math.floor(clubs.size / 2)) continue;
+      const participants = new Set(round.fixtures.flatMap((fixture) => [fixture.homeId, fixture.awayId]));
+      round.byes = [...new Set([...round.byes, ...[...clubs].filter(([id]) => !participants.has(id)).map(([, name]) => name)])];
+    }
+  }
+  return result;
 }
 
 function fixtureKey(fixture) {
@@ -333,10 +367,14 @@ function parseFormalActas(html) {
 }
 
 function addFormalActas(fixtures, actas) {
-  return fixtures.map((fixture) => ({
-    ...fixture,
-    actaUrl: fixture.actaUrl || actas.get(fixtureKey(fixture)) || "",
-  }));
+  return fixtures.map((fixture) => {
+    const actaUrl = fixture.actaUrl || actas.get(fixtureKey(fixture)) || "";
+    return {
+      ...fixture,
+      state: actaUrl && fixture.state !== "suspended" ? "played" : fixture.state,
+      actaUrl,
+    };
+  });
 }
 
 async function mapLimit(items, limit, mapper) {
@@ -412,12 +450,13 @@ function classificationUrlForTeam(team, tournament = team.tournament) {
 
 function parseTournamentOptions(html) {
   const select = html.match(/<select\b[^>]*\bid=["']torneos["'][^>]*>[\s\S]*?<\/select>/i)?.[0] ?? "";
-  const options = [...select.matchAll(/<option\b([^>]*)>/gi)].flatMap((match) => {
+  const options = [...select.matchAll(/<option\b([^>]*)>([\s\S]*?)<\/option>/gi)].flatMap((match) => {
     const id = match[1].match(/\bvalue=["'](\d+)["']/i)?.[1];
-    return id ? [{ id, selected: /\bselected\b/i.test(match[1]) }] : [];
+    return id ? [{ id, label: textFromHtml(match[2]), selected: /\bselected\b/i.test(match[1]) }] : [];
   });
   return {
     selected: options.find((option) => option.selected)?.id ?? "",
+    label: options.find((option) => option.selected)?.label ?? "",
     ids: options.map((option) => option.id),
   };
 }
@@ -427,16 +466,16 @@ async function fetchTeamCalendar(team) {
   // current groups, then select the calendar that actually contains this club.
   const firstHtml = await fetchHtml(calendarUrlForTeam(team, ""));
   const firstFixtures = parseCalendar(firstHtml, team);
-  const { selected, ids } = parseTournamentOptions(firstHtml);
-  if (firstFixtures.length) return { fixtures: firstFixtures, tournamentId: selected || team.tournament };
+  const { selected, ids, label } = parseTournamentOptions(firstHtml);
+  if (firstFixtures.length) return { fixtures: firstFixtures, tournamentId: selected || team.tournament, rounds: parseLeagueCalendar(firstHtml), label };
 
   const candidates = [...new Set([...ids, team.tournament].filter((id) => id && id !== selected))];
   for (const tournament of candidates) {
     const html = await fetchHtml(calendarUrlForTeam(team, tournament));
     const fixtures = parseCalendar(html, team);
-    if (fixtures.length) return { fixtures, tournamentId: tournament };
+    if (fixtures.length) return { fixtures, tournamentId: tournament, rounds: parseLeagueCalendar(html), label: parseTournamentOptions(html).label };
   }
-  return { fixtures: [], tournamentId: selected || team.tournament };
+  return { fixtures: [], tournamentId: selected || team.tournament, rounds: [], label };
 }
 
 async function fetchFormalActas(tournamentId) {
@@ -492,13 +531,21 @@ async function buildData() {
       scorersUrl: hasScorersPage ? statisticsUrlForTeam(team) : "",
       fixtures: addFormalActas(rosterHtml ? parseTeamFixtures(rosterHtml, team) : [], formalActas),
       calendarFixtures: addFormalActas(calendarFixtures, formalActas),
+      league: {
+        tournamentId: schedule.tournamentId,
+        label: schedule.label || "",
+        sourceUrl: calendarUrlForTeam(team, schedule.tournamentId),
+        rounds: (schedule.rounds || []).map((round) => ({ ...round, fixtures: addFormalActas(round.fixtures, formalActas) })),
+      },
       rosterAvailable: rosterResult.status === "fulfilled",
       scheduleAvailable: scheduleResult.status === "fulfilled",
     };
   });
 
   for (const team of teams) {
-    if (!team.fixtures.length) team.fixtures = team.calendarFixtures;
+    // The official round must stay attached to a postponed match even when
+    // its new date falls after later rounds. The team page numbers by date.
+    if (team.calendarFixtures.length) team.fixtures = team.calendarFixtures;
     delete team.calendarFixtures;
   }
 

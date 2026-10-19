@@ -1,6 +1,7 @@
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { generateLeaguePdfs } from "./league-pdfs.mjs";
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const distRoot = resolve(projectRoot, "dist");
@@ -148,6 +149,8 @@ const response = await worker.fetch(new Request("https://amics-hc.invalid/api/da
 if (!response.ok) throw new Error(`Could not fetch club data for the Pages snapshot (${response.status})`);
 const data = await response.json();
 if (!Array.isArray(data.teams)) throw new Error("The data endpoint returned an invalid payload");
+const unavailableCalendars = data.teams.filter((team) => !team.scheduleAvailable);
+if (unavailableCalendars.length) throw new Error(`Calendars unavailable; preserving the last published version: ${unavailableCalendars.map((team) => team.key).join(", ")}`);
 const instagramSnapshot = await fetchLatestInstagramPost();
 
 await rm(distRoot, { recursive: true, force: true });
@@ -155,6 +158,7 @@ await Promise.all([
   mkdir(resolve(distRoot, "api"), { recursive: true }),
   mkdir(resolve(distRoot, "images"), { recursive: true }),
 ]);
+await generateLeaguePdfs(data, distRoot);
 await Promise.all([
   writeFile(resolve(distRoot, "index.html"), page, "utf8"),
   writeFile(resolve(distRoot, "api/data.json"), `${JSON.stringify(data)}\n`, "utf8"),
