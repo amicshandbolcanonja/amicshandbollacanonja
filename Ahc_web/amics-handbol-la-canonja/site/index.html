@@ -674,7 +674,7 @@
           <div class="schedule-overview">
             <h2 id="schedule-title" tabindex="-1" data-ca="Calendaris i resultats" data-es="Calendarios y resultados">Calendaris i resultats</h2>
             <p id="sync-status" role="status" aria-live="polite">Connectant amb els resultats oficials…</p>
-            <a class="schedule-source" href="https://resultadosbalonmano.isquad.es/club.php?id=100639&amp;id_superficie=1&amp;id_temp=2627" target="_blank" rel="noopener noreferrer" data-ca="Consultar a iSquad ↗" data-es="Consultar en iSquad ↗">Consultar a iSquad ↗</a>
+            <a class="schedule-source" id="official-schedule-link" href="https://resultadosbalonmano.isquad.es/club.php?id=100639&amp;id_superficie=1&amp;id_temp=2627" target="_blank" rel="noopener noreferrer" data-ca="Consultar a iSquad ↗" data-es="Consultar en iSquad ↗">Consultar a iSquad ↗</a>
           </div>
           <label class="schedule-team-picker" id="schedule-team-picker" hidden>
             <span data-ca="Canviar d’equip" data-es="Cambiar de equipo">Canviar d’equip</span>
@@ -744,6 +744,8 @@
       const panelsNode = document.getElementById("team-panels");
       const teamPicker = document.getElementById("schedule-team-picker");
       const teamSelect = document.getElementById("schedule-team-select");
+      const officialScheduleLink = document.getElementById("official-schedule-link");
+      const officialClubUrl = officialScheduleLink.href;
       const scheduleDataUrl = "/api/data";
       const compactCalendar = window.matchMedia("(max-width: 760px)");
       const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -1125,7 +1127,11 @@
         const labels = teamWords();
         const standings = team.standings || [];
         const clubStanding = standings.find((entry) => entry.isClub);
-        const summary = clubStanding
+        const archived = siteData.sourceMode === "isquad-printable" && siteData.detailsGeneratedAt;
+        const archiveDate = archived ? formatUpdatedAt(siteData.detailsGeneratedAt) : "";
+        const summary = archived
+          ? (language === "ca" ? "Darrera còpia oficial" : "Última copia oficial")
+          : clubStanding
           ? labels.currentStanding(clubStanding.position, clubStanding.points)
           : standings.length + " " + labels.teams;
         const sourceUrl = team.standingsUrl || team.teamUrl || "";
@@ -1140,7 +1146,8 @@
             '<th scope="col">' + escapeHtml(labels.position) + '</th><th scope="col">' + escapeHtml(labels.team) + '</th><th scope="col">' + escapeHtml(labels.playedShort) + '</th><th scope="col">' + escapeHtml(labels.winsShort) + '</th><th scope="col">' + escapeHtml(labels.drawsShort) + '</th><th scope="col">' + escapeHtml(labels.lossesShort) + '</th><th scope="col">' + escapeHtml(labels.goalsForShort) + '</th><th scope="col">' + escapeHtml(labels.goalsAgainstShort) + '</th><th scope="col">' + escapeHtml(labels.differenceShort) + '</th><th scope="col">' + escapeHtml(labels.pointsShort) + '</th>' +
             '</tr></thead><tbody>' + standings.map((entry) => '<tr' + (entry.isClub ? ' class="is-club" aria-current="true"' : '') + '><td>' + escapeHtml(entry.position) + '</td><th scope="row">' + escapeHtml(entry.name) + '</th><td data-label="' + escapeHtml(labels.playedShort) + '">' + escapeHtml(entry.played) + '</td><td data-label="' + escapeHtml(labels.winsShort) + '">' + escapeHtml(entry.wins) + '</td><td data-label="' + escapeHtml(labels.drawsShort) + '">' + escapeHtml(entry.draws) + '</td><td data-label="' + escapeHtml(labels.lossesShort) + '">' + escapeHtml(entry.losses) + '</td><td data-label="' + escapeHtml(labels.goalsForShort) + '">' + escapeHtml(entry.goalsFor) + '</td><td data-label="' + escapeHtml(labels.goalsAgainstShort) + '">' + escapeHtml(entry.goalsAgainst) + '</td><td data-label="' + escapeHtml(labels.differenceShort) + '">' + escapeHtml(entry.goalDifference) + '</td><td data-label="' + escapeHtml(labels.pointsShort) + '"><strong>' + escapeHtml(entry.points) + '</strong></td></tr>').join("") + '</tbody></table></div>'
           : '<p class="standings-unavailable">' + escapeHtml(labels.noStandings) + (sourceUrl ? ' <a href="' + escapeHtml(sourceUrl) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(labels.viewOfficial) + ' ↗</a>' : "") + '</p>';
-        return '<details class="standings-section"><summary><h4 class="standings-summary-title">' + escapeHtml(labels.standings) + '</h4><span class="standings-summary-meta">' + escapeHtml(summary) + '</span><span class="standings-chevron" aria-hidden="true">⌄</span></summary><div class="standings-content">' + sourceLink + (standings.length ? mobileNote : "") + table + '</div></details>';
+        const archiveNote = archived ? '<p class="standings-source">' + escapeHtml((language === "ca" ? "Classificació oficial del " : "Clasificación oficial del ") + archiveDate) + '</p>' : "";
+        return '<details class="standings-section"><summary><h4 class="standings-summary-title">' + escapeHtml(labels.standings) + '</h4><span class="standings-summary-meta">' + escapeHtml(summary) + '</span><span class="standings-chevron" aria-hidden="true">⌄</span></summary><div class="standings-content">' + archiveNote + sourceLink + (standings.length ? mobileNote : "") + table + '</div></details>';
       }
 
       function toggleFavorite(teamKey) {
@@ -1302,7 +1309,7 @@
       function renderLeagueDownloads(team) {
         const ca = language === "ca";
         const rounds = team.league?.rounds || [];
-        const sourceUrl = team.league?.sourceUrl || team.teamUrl || "";
+        const sourceUrl = team.league?.printableUrl || team.league?.sourceUrl || team.teamUrl || "";
         const sourceLink = sourceUrl ? '<a href="' + escapeHtml(sourceUrl) + '" target="_blank" rel="noopener noreferrer">' + (ca ? "Calendari oficial" : "Calendario oficial") + ' ↗</a>' : "";
         const menuStart = '<details class="league-pdf-menu" name="league-download"><summary class="league-pdf-toggle"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 3v8m0 0 3-3m-3 3L7 8m-3.5 5v1.5A1.5 1.5 0 0 0 5 16h10a1.5 1.5 0 0 0 1.5-1.5V13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Guardar jornada</span><small>PDF</small><svg class="league-pdf-chevron" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m6 8 4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><div class="league-pdf-popover">';
         if (!rounds.length || !rounds.some((round) => round.pdfUrls?.[language])) {
@@ -1330,6 +1337,11 @@
         if (!siteData?.teams?.length) return;
         renderTabs();
         renderPanels();
+        const printableUrl = siteData.teams.find((team) => team.key === activeTeamKey)?.league?.printableUrl;
+        officialScheduleLink.href = printableUrl || officialClubUrl;
+        officialScheduleLink.textContent = printableUrl
+          ? (language === "ca" ? "Calendari oficial d’iSquad (PDF) ↗" : "Calendario oficial de iSquad (PDF) ↗")
+          : officialScheduleLink.dataset[language];
       }
 
       function selectTeam(key, moveFocus = false, scroll = true) {
@@ -1354,7 +1366,12 @@
           return;
         }
         const stale = calendarLoadFailed || Date.now() - Date.parse(siteData.generatedAt) > 24 * 60 * 60 * 1000;
-        setStatus(words().updated + " " + formatUpdatedAt(siteData.generatedAt) + (stale ? " · " + words().stale : ""), stale ? "stale" : "ok");
+        const printable = siteData.sourceMode === "isquad-printable" && siteData.detailsGeneratedAt;
+        const checked = printable ? (language === "ca" ? "Resultats consultats el " : "Resultados consultados el ") : words().updated + " ";
+        const details = printable
+          ? (language === "ca" ? " · Horaris, pistes i classificació de la còpia del " : " · Horarios, pistas y clasificación de la copia del ") + formatUpdatedAt(siteData.detailsGeneratedAt)
+          : "";
+        setStatus(checked + formatUpdatedAt(siteData.generatedAt) + details + (stale ? " · " + words().stale : ""), stale ? "stale" : "ok");
       }
 
       async function loadData() {

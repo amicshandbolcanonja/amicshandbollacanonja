@@ -83,6 +83,11 @@ export async function loadPublishedCalendar(expectedTeams) {
   return { data, hasFullRounds };
 }
 
+export async function loadPublishedLeagueDetails() {
+  const bytes = await readAsset("./api/league-details.json", "application/json", 2 * MiB);
+  return JSON.parse(bytes.toString("utf8"));
+}
+
 export async function copyPublishedLeaguePdfs(data, distRoot) {
   const files = [];
   for (const team of data.teams) {

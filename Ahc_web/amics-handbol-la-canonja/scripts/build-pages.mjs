@@ -4,7 +4,8 @@ import { fileURLToPath } from "node:url";
 import worker, { TEAM_CONFIG } from "../worker/index.js";
 import { readSiteImages } from "./site-images.mjs";
 import { generateLeaguePdfs } from "./league-pdfs.mjs";
-import { copyPublishedLeaguePdfs, loadPublishedCalendar, loadPublishedInstagramPost, validateCalendarSnapshot } from "./published-snapshot.mjs";
+import { copyPublishedLeaguePdfs, loadPublishedCalendar, loadPublishedInstagramPost, loadPublishedLeagueDetails, validateCalendarSnapshot } from "./published-snapshot.mjs";
+import { makeLeagueDetails, readBootstrapLeagueDetails, updateFromPrintableCalendars } from "./isquad-export-sync.mjs";
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const distRoot = resolve(projectRoot, "dist");
@@ -143,20 +144,36 @@ const allowPublishedFallback = event === "push" || event === "workflow_dispatch"
 const expectedTeams = new Set(TEAM_CONFIG.map(({ key }) => key));
 let data;
 let hasFullRounds;
+let leagueDetails;
 try {
   const response = await worker.fetch(new Request("https://amics-hc.invalid/api/data"), {}, {});
   if (!response.ok) throw new Error(`Could not fetch club data for the Pages snapshot (${response.status})`);
   data = await response.json();
   hasFullRounds = validateCalendarSnapshot(data, expectedTeams);
 } catch (error) {
-  if (!allowPublishedFallback) throw error;
   console.warn(`Live calendars unavailable: ${error.message}`);
-  ({ data, hasFullRounds } = await loadPublishedCalendar(expectedTeams));
-  console.warn(`Reusing published calendar data from ${data.generatedAt}`);
+  const previous = await loadPublishedCalendar(expectedTeams);
+  const detailsGeneratedAt = previous.data.detailsGeneratedAt || previous.data.generatedAt;
+  leagueDetails = await loadPublishedLeagueDetails().catch(() => null);
+  if (leagueDetails?.generatedAt !== detailsGeneratedAt) {
+    const bootstrap = await readBootstrapLeagueDetails();
+    leagueDetails = bootstrap?.generatedAt === detailsGeneratedAt ? bootstrap : null;
+  }
+  try {
+    const updated = await updateFromPrintableCalendars(previous.data, leagueDetails);
+    hasFullRounds = validateCalendarSnapshot(updated, expectedTeams);
+    data = updated;
+  } catch (exportError) {
+    if (!allowPublishedFallback) throw new Error(`Official printable calendars unavailable: ${exportError.message}`, { cause: exportError });
+    console.warn(`Official printable calendars unavailable: ${exportError.message}`);
+    ({ data, hasFullRounds } = previous);
+    console.warn(`Reusing published calendar data from ${data.generatedAt}`);
+  }
 }
+if (hasFullRounds) leagueDetails = makeLeagueDetails(data);
 
 let instagramSnapshot = await fetchLatestInstagramPost();
-if (allowPublishedFallback && !instagramSnapshot.post.permalink) {
+if (!instagramSnapshot.post.permalink) {
   try {
     const previous = await loadPublishedInstagramPost();
     if (previous) {
@@ -183,6 +200,7 @@ for (const team of data.teams) {
 await Promise.all([
   writeFile(resolve(distRoot, "index.html"), page, "utf8"),
   writeFile(resolve(distRoot, "api/data.json"), `${JSON.stringify(data)}\n`, "utf8"),
+  ...(leagueDetails ? [writeFile(resolve(distRoot, "api/league-details.json"), `${JSON.stringify(leagueDetails)}\n`, "utf8")] : []),
   ...siteImages.map(({ file, bytes }) => writeFile(resolve(distRoot, "images", file), bytes)),
   writeFile(resolve(distRoot, "api/instagram.json"), JSON.stringify(instagramSnapshot.post) + "\n", "utf8"),
   ...instagramSnapshot.downloadedImages.map(({ imageFile, imageBytes }) => writeFile(resolve(distRoot, "images", imageFile), imageBytes)),

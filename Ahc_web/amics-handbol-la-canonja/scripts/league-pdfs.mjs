@@ -50,6 +50,11 @@ export async function createLeagueRoundPdf(data, team, round, language = "es") {
   const category = ca ? team.nameCa : team.nameEs;
   const competition = ca ? team.competitionCa : team.competitionEs;
   const updated = new Intl.DateTimeFormat(ca ? "ca-ES" : "es-ES", { dateStyle: "short", timeStyle: "short", timeZone: "Europe/Madrid" }).format(new Date(data.generatedAt));
+  const printable = data.sourceMode === "isquad-printable" && data.detailsGeneratedAt;
+  const detailsDate = printable
+    ? new Intl.DateTimeFormat(ca ? "ca-ES" : "es-ES", { dateStyle: "short", timeZone: "Europe/Madrid" }).format(new Date(data.detailsGeneratedAt))
+    : "";
+  const updatedLabel = printable ? (ca ? "Resultats consultats" : "Resultados consultados") : labels.updated;
   const scheduled = round.date ? new Intl.DateTimeFormat(ca ? "ca-ES" : "es-ES", { dateStyle: "short", timeZone: "Europe/Madrid" }).format(new Date(`${round.date}T12:00:00Z`)) : "";
   const progress = roundProgress(round);
   pdf.setTitle(`${competition} - ${category} - ${title}`);
@@ -70,7 +75,7 @@ export async function createLeagueRoundPdf(data, team, round, language = "es") {
     let headerY = 737;
     for (const line of wrap(`${category} / ${competition}`, bold, 11, 520)) { text(line, MARGIN, headerY, 11, bold); headerY -= 15; }
     if (team.league.label) for (const line of wrap(team.league.label, regular, 9, 520)) { text(line, MARGIN, headerY, 9, regular, MUTED); headerY -= 12; }
-    text(`${labels.updated}: ${updated} (Europe/Madrid)${scheduled ? ` / ${ca ? "Data de jornada" : "Fecha de jornada"}: ${scheduled}` : ""}`, MARGIN, headerY - 5, 8.5, regular, MUTED);
+    text(`${updatedLabel}: ${updated} (Europe/Madrid)${scheduled ? ` / ${ca ? "Data de jornada" : "Fecha de jornada"}: ${scheduled}` : ""}`, MARGIN, headerY - 5, 8.5, regular, MUTED);
     const bandY = headerY - 52;
     page.drawRectangle({ x: MARGIN, y: bandY, width: PAGE[0] - MARGIN * 2, height: 31, color: PALE });
     text(`${progress.played}/${progress.total} ${labels.finished}   /   ${progress.pending} ${labels.pending}`, MARGIN + 10, bandY + 11, 10, bold, BLUE);
@@ -119,6 +124,10 @@ export async function createLeagueRoundPdf(data, team, round, language = "es") {
     text(`${labels.source} / ${team.league.tournamentId}`, MARGIN, 54, 7, regular, MUTED);
     text(`${labels.page} ${index + 1}/${pages.length}`, 507, 54, 7, regular, MUTED);
     wrap(labels.copy, regular, 7.2, 520).forEach((line, lineIndex) => text(line, MARGIN, 40 - lineIndex * 9, 7.2, regular, MUTED));
+    if (printable) text(
+      (ca ? "Horaris i pistes disponibles segons la còpia oficial del " : "Horarios y pistas disponibles según la copia oficial del ") + detailsDate + ".",
+      MARGIN, 24, 7.2, regular, MUTED,
+    );
   });
   return pdf.save();
 }
