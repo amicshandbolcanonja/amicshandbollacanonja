@@ -1,6 +1,5 @@
 const PAGE_HTML = "";
-const HERO_PHOTO_BASE64 = "";
-const HERO_PHOTO_BYTES = Uint8Array.from(atob(HERO_PHOTO_BASE64), (character) => character.charCodeAt(0));
+const SITE_IMAGES_BASE64 = {};
 
 const CLUB_URL = "https://resultadosbalonmano.isquad.es/club.php?id=100639&id_superficie=1&id_temp=2627";
 const CLUB_ID = "100639";
@@ -20,7 +19,7 @@ let inFlightRefresh = null;
 let cachedInstagramPosts = null;
 let instagramCachedAt = 0;
 
-const TEAM_CONFIG = [
+export const TEAM_CONFIG = [
   { id: "222243", key: "senior-masculi", category: "3077", competition: "211808", tournament: "1038562", nameCa: "Sènior masculí", nameEs: "Sénior masculino", competitionCa: "Segona Catalana · Grup B", competitionEs: "Segunda Catalana · Grupo B" },
   { id: "222242", key: "senior-femeni", category: "3076", competition: "211803", tournament: "1038568", nameCa: "Sènior femení", nameEs: "Sénior femenino", competitionCa: "Primera Catalana · Grup A", competitionEs: "Primera Catalana · Grupo A" },
   { id: "222245", key: "juvenil-femeni", category: "3078", competition: "211813", tournament: "1038687", nameCa: "Juvenil femení", nameEs: "Juvenil femenino", competitionCa: "Primera Catalana juvenil femenina", competitionEs: "Primera Catalana juvenil femenina" },
@@ -687,10 +686,11 @@ export default {
       }
     }
 
-    if (url.pathname === "/images/ascenso_ahcjpeg.jpeg") {
-      return new Response(HERO_PHOTO_BYTES, {
+    if (Object.hasOwn(SITE_IMAGES_BASE64, url.pathname)) {
+      const image = Uint8Array.from(atob(SITE_IMAGES_BASE64[url.pathname]), (character) => character.charCodeAt(0));
+      return new Response(image, {
         headers: {
-          "content-type": "image/jpeg",
+          "content-type": url.pathname.endsWith(".png") ? "image/png" : "image/webp",
           "cache-control": "public, max-age=86400",
           "x-content-type-options": "nosniff",
         },

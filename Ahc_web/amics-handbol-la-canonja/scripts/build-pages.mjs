@@ -1,7 +1,10 @@
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import worker, { TEAM_CONFIG } from "../worker/index.js";
+import { readSiteImages } from "./site-images.mjs";
 import { generateLeaguePdfs } from "./league-pdfs.mjs";
+import { copyPublishedLeaguePdfs, loadPublishedCalendar, loadPublishedInstagramPost, validateCalendarSnapshot } from "./published-snapshot.mjs";
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const distRoot = resolve(projectRoot, "dist");
@@ -116,10 +119,9 @@ async function fetchLatestInstagramPost() {
   }
 }
 
-const [workerSource, sourcePage, heroPhoto] = await Promise.all([
-  readFile(resolve(projectRoot, "worker/index.js"), "utf8"),
+const [sourcePage, siteImages] = await Promise.all([
   readFile(resolve(projectRoot, "site/index.html"), "utf8"),
-  readFile(resolve(projectRoot, "site/ascenso_ahcjpeg.jpeg")),
+  readSiteImages(projectRoot),
 ]);
 function replaceOnce(source, from, to) {
   const first = source.indexOf(from);
@@ -129,40 +131,59 @@ function replaceOnce(source, from, to) {
   return `${source.slice(0, first)}${to}${source.slice(first + from.length)}`;
 }
 
-let workerBundle = replaceOnce(workerSource, 'const PAGE_HTML = "";', `const PAGE_HTML = ${JSON.stringify(sourcePage)};`);
-workerBundle = replaceOnce(
-  workerBundle,
-  'const HERO_PHOTO_BASE64 = "";',
-  `const HERO_PHOTO_BASE64 = ${JSON.stringify(heroPhoto.toString("base64"))};`,
+const pageWithRelativeImages = sourcePage.replace(
+  /\b(src|srcset)="([^"]*)"/g,
+  (_, attribute, value) => `${attribute}="${value.replace(/(^|,\s*)\/images\//g, "$1./images/")}"`,
 );
+const page = replaceOnce(pageWithRelativeImages, '"/api/data"', '"./api/data.json"');
 
-let page = replaceOnce(sourcePage, 'src="/images/ascenso_ahcjpeg.jpeg"', 'src="./images/ascenso_ahcjpeg.jpeg"');
-page = replaceOnce(
-  page,
-  'fetch("/api/data", { cache: "no-store" })',
-  'fetch("./api/data.json", { cache: "no-store" })',
-);
+const event = process.env.GITHUB_EVENT_NAME;
+const allowPublishedFallback = event === "push" || event === "workflow_dispatch" ||
+  (!event && process.env.AHC_USE_PUBLISHED_SNAPSHOT === "1");
+const expectedTeams = new Set(TEAM_CONFIG.map(({ key }) => key));
+let data;
+let hasFullRounds;
+try {
+  const response = await worker.fetch(new Request("https://amics-hc.invalid/api/data"), {}, {});
+  if (!response.ok) throw new Error(`Could not fetch club data for the Pages snapshot (${response.status})`);
+  data = await response.json();
+  hasFullRounds = validateCalendarSnapshot(data, expectedTeams);
+} catch (error) {
+  if (!allowPublishedFallback) throw error;
+  console.warn(`Live calendars unavailable: ${error.message}`);
+  ({ data, hasFullRounds } = await loadPublishedCalendar(expectedTeams));
+  console.warn(`Reusing published calendar data from ${data.generatedAt}`);
+}
 
-const workerUrl = `data:text/javascript;base64,${Buffer.from(workerBundle).toString("base64")}`;
-const { default: worker } = await import(workerUrl);
-const response = await worker.fetch(new Request("https://amics-hc.invalid/api/data"), {}, {});
-if (!response.ok) throw new Error(`Could not fetch club data for the Pages snapshot (${response.status})`);
-const data = await response.json();
-if (!Array.isArray(data.teams)) throw new Error("The data endpoint returned an invalid payload");
-const unavailableCalendars = data.teams.filter((team) => !team.scheduleAvailable);
-if (unavailableCalendars.length) throw new Error(`Calendars unavailable; preserving the last published version: ${unavailableCalendars.map((team) => team.key).join(", ")}`);
-const instagramSnapshot = await fetchLatestInstagramPost();
+let instagramSnapshot = await fetchLatestInstagramPost();
+if (allowPublishedFallback && !instagramSnapshot.post.permalink) {
+  try {
+    const previous = await loadPublishedInstagramPost();
+    if (previous) {
+      instagramSnapshot = previous;
+      console.warn("Reusing the published Instagram post");
+    }
+  } catch (error) {
+    console.warn(`Could not preserve the published Instagram post: ${error.message}`);
+  }
+}
 
 await rm(distRoot, { recursive: true, force: true });
 await Promise.all([
   mkdir(resolve(distRoot, "api"), { recursive: true }),
   mkdir(resolve(distRoot, "images"), { recursive: true }),
 ]);
-await generateLeaguePdfs(data, distRoot);
+if (hasFullRounds) await generateLeaguePdfs(data, distRoot);
+else await copyPublishedLeaguePdfs(data, distRoot);
+// The PDFs need all league matches, but the page only uses the round selector and download links.
+for (const team of data.teams) {
+  if (!Array.isArray(team.league?.rounds)) continue;
+  team.league.rounds = team.league.rounds.map(({ number, date, progress, pdfUrls }) => ({ number, date, progress, pdfUrls }));
+}
 await Promise.all([
   writeFile(resolve(distRoot, "index.html"), page, "utf8"),
   writeFile(resolve(distRoot, "api/data.json"), `${JSON.stringify(data)}\n`, "utf8"),
-  writeFile(resolve(distRoot, "images/ascenso_ahcjpeg.jpeg"), heroPhoto),
+  ...siteImages.map(({ file, bytes }) => writeFile(resolve(distRoot, "images", file), bytes)),
   writeFile(resolve(distRoot, "api/instagram.json"), JSON.stringify(instagramSnapshot.post) + "\n", "utf8"),
   ...instagramSnapshot.downloadedImages.map(({ imageFile, imageBytes }) => writeFile(resolve(distRoot, "images", imageFile), imageBytes)),
   writeFile(resolve(distRoot, ".nojekyll"), ""),

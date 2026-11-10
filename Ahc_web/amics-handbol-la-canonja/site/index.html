@@ -4,10 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f4f2eb">
-  <meta name="description" content="Amics Handbol La Canonja: equips, calendari de la temporada i vida de club.">
+  <meta name="description" content="Web d’Amics Handbol La Canonja. Consulta els equips, els calendaris, els resultats i com venir a jugar o animar al poliesportiu.">
+  <link rel="canonical" href="https://amicshandbolcanonja.github.io/amicshandbollacanonja/">
+  <link rel="icon" href="./images/escut-128.png" type="image/png" sizes="128x128">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="ca_ES">
+  <meta property="og:url" content="https://amicshandbolcanonja.github.io/amicshandbollacanonja/">
   <meta property="og:title" content="Amics Handbol La Canonja">
-  <meta property="og:description" content="Consulta els equips i els calendaris de cada secció d’Amics Handbol La Canonja.">
-  <title>Amics Handbol La Canonja — Handbol, equip i poble</title>
+  <meta property="og:description" content="Equips, calendaris i resultats del club d’handbol de La Canonja.">
+  <meta property="og:image" content="https://amicshandbolcanonja.github.io/amicshandbollacanonja/images/ascens-1120.webp">
+  <meta property="og:image:alt" content="Celebració de l’ascens d’Amics Handbol La Canonja amb jugadors i afició.">
+  <meta name="twitter:card" content="summary_large_image">
+  <title>Amics Handbol La Canonja · Equips, calendaris i resultats</title>
   <style>
     :root {
       color-scheme: light;
@@ -32,8 +40,8 @@
     .skip-link:focus { transform: translateY(0); }
     :focus-visible { outline: 3px solid var(--orange); outline-offset: 4px; }
     .shell { width: min(1180px, calc(100% - 48px)); margin-inline: auto; }
-    .topbar { position: sticky; top: 0; z-index: 10; isolation: isolate; display: flex; align-items: center; justify-content: space-between; min-height: 82px; }
-    .topbar::before { position: absolute; z-index: -1; inset: 0 auto 0 50%; width: 100vw; transform: translateX(-50%); border-bottom: 1px solid var(--line); background: rgba(244,242,235,.96); backdrop-filter: blur(12px); content: ""; pointer-events: none; }
+    .topbar { position: sticky; top: 0; z-index: 10; border-bottom: 1px solid var(--line); background: rgba(244,242,235,.96); backdrop-filter: blur(12px); }
+    .topbar-inner { position: relative; display: flex; align-items: center; justify-content: space-between; min-height: 81px; }
     #inici, #club, #equips, #actualitat, #visita, .schedules, .schedule-panel { scroll-margin-top: 98px; }
     .brand { display: inline-flex; align-items: center; gap: 11px; text-decoration: none; }
     .brand-mark { display: grid; width: 48px; height: 48px; flex: 0 0 48px; place-items: center; overflow: hidden; padding: 3px; border: 1px solid var(--line); border-radius: 50%; background: var(--white); }
@@ -69,15 +77,14 @@
     .hero-art { position: relative; display: grid; min-height: 430px; place-items: center; isolation: isolate; }
     .hero-art::before { position: absolute; z-index: -1; width: min(39vw, 440px); aspect-ratio: 1; border-radius: 50%; background: var(--lilac); content: ""; }
     .hero-art::after { position: absolute; z-index: -1; right: 1%; bottom: 5%; width: 97px; aspect-ratio: 1; border-radius: 50%; background: var(--lime); content: ""; }
-    .hero-photo { position: relative; z-index: 1; display: block; width: min(100%, 560px); aspect-ratio: 3 / 2; border-radius: 8px 30px 8px 30px; object-fit: cover; box-shadow: 0 20px 55px rgba(25,24,54,.15); }
+    .hero-photo { position: relative; z-index: 1; display: block; width: min(100%, 560px); height: auto; aspect-ratio: 3 / 2; border-radius: 8px 30px 8px 30px; object-fit: cover; box-shadow: 0 20px 55px rgba(25,24,54,.15); }
     .hero-sticker { position: absolute; top: 9%; right: 2%; display: grid; width: 102px; aspect-ratio: 1; place-items: center; border: 1px solid rgba(25,24,54,.2); border-radius: 50%; background: var(--white); color: var(--blue); font-size: 9px; font-weight: 850; line-height: 1.55; letter-spacing: .1em; text-align: center; text-transform: uppercase; transform: rotate(11deg); }
     .hero-sticker span { display: block; font-size: 21px; line-height: 1; }
     .art-caption { position: absolute; bottom: 0; left: 0; color: var(--muted); font-size: 10px; font-weight: 750; letter-spacing: .1em; text-transform: uppercase; }
-    .marquee { overflow: hidden; border-block: 1px solid var(--line); background: var(--lime); }
-    .marquee-inner { display: flex; width: max-content; gap: 26px; padding: 14px 0; animation: drift 28s linear infinite; }
-    .marquee span { display: inline-flex; align-items: center; gap: 26px; font-size: 11px; font-weight: 900; letter-spacing: .15em; text-transform: uppercase; }
-    .marquee span::after { color: var(--blue); content: "✳"; font-size: 17px; }
-    @keyframes drift { to { transform: translateX(-50%); } }
+    .club-strip { border-block: 1px solid var(--line); background: var(--lilac); }
+    .club-strip ul { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px clamp(16px, 5vw, 56px); margin-block: 0; padding: 14px 0; list-style: none; }
+    .club-strip li { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); font-size: 11px; font-weight: 800; letter-spacing: .07em; }
+    .club-strip li::before { width: 5px; height: 5px; border-radius: 50%; background: var(--blue); content: ""; }
     .section { padding-block: 112px; }
     .section-label { margin-bottom: 19px; color: var(--blue); font-size: 10px; font-weight: 850; letter-spacing: .16em; text-transform: uppercase; }
     .about { display: grid; grid-template-columns: .78fr 1.22fr; gap: 9%; align-items: start; }
@@ -93,19 +100,15 @@
     .teams-heading > p { max-width: 310px; margin: 0 0 5px; color: rgba(255,255,255,.67); font-size: 14px; line-height: 1.65; }
     .team-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 13px; }
     .team-card { position: relative; display: flex; min-height: 248px; flex-direction: column; justify-content: space-between; overflow: hidden; padding: 23px; border: 1px solid rgba(255,255,255,.18); border-radius: 7px 23px 7px 23px; background: rgba(255,255,255,.045); }
-    .team-card:nth-child(2) { background: var(--blue); }
-    .team-card:nth-child(3) { background: var(--violet); color: white; }
     .team-card::after { position: absolute; right: -35px; bottom: -50px; width: 145px; aspect-ratio: 1; border: 1px solid currentColor; border-radius: 50%; opacity: .17; content: ""; box-shadow: 0 0 0 14px transparent, 0 0 0 15px currentColor, 0 0 0 33px transparent, 0 0 0 34px currentColor; }
     .team-index { display: flex; align-items: center; justify-content: space-between; color: rgba(255,255,255,.72); font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
-    .team-card:nth-child(3) .team-index { color: rgba(255,255,255,.72); }
     .team-index span:last-child { display: grid; width: 30px; height: 30px; place-items: center; border: 1px solid currentColor; border-radius: 50%; font-size: 15px; }
-    .team-card h3 { position: relative; z-index: 1; max-width: 220px; margin-bottom: 9px; font-size: 26px; font-weight: 800; letter-spacing: -.055em; line-height: 1.02; }
-    .team-card p { position: relative; z-index: 1; max-width: 255px; margin-bottom: 0; color: rgba(255,255,255,.72); font-size: 12px; line-height: 1.55; }
-    .team-card:nth-child(3) p { color: rgba(255,255,255,.72); }
+    .team-card-title { position: relative; z-index: 1; display: block; margin-bottom: 7px; font-size: clamp(20px, 2.5vw, 26px); font-weight: 800; letter-spacing: -.045em; line-height: 1.08; }
+    .team-card-competition { position: relative; z-index: 1; display: block; color: rgba(255,255,255,.78); font-size: 12px; line-height: 1.55; }
     .team-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    .team-tab { width: 100%; min-height: 180px; color: inherit; font: inherit; text-align: left; cursor: pointer; }
-    .team-tab:nth-child(3) .team-index, .team-tab:nth-child(3) p { color: rgba(255,255,255,.72); }
-    .team-tab[aria-selected="true"] { outline: 2px solid var(--lime); outline-offset: 3px; }
+    .team-tab { width: 100%; min-height: 146px; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+    .team-tab:hover { border-color: rgba(255,255,255,.55); background: rgba(255,255,255,.09); }
+    .team-tab[aria-selected="true"] { border-color: var(--lime); background: var(--blue); outline: 2px solid var(--lime); outline-offset: 2px; }
     .team-tab:focus-visible { outline: 3px solid var(--orange); outline-offset: 4px; }
     .schedules { padding-top: 0; }
     .schedule-panel { padding: clamp(20px, 4vw, 36px); border-radius: 8px 28px 8px 28px; background: var(--white); color: var(--ink); }
@@ -221,7 +224,6 @@
     .reveal { animation: rise .65s both; }
     @keyframes rise { from { opacity: 0; transform: translateY(13px); } to { opacity: 1; transform: translateY(0); } }
     @media (max-width: 850px) {
-      .topbar::before { left: 0; width: 100%; transform: none; }
       .menu-toggle { display: inline-flex; }
       .nav { position: absolute; top: calc(100% + 8px); right: 0; left: 0; display: none; flex-direction: column; align-items: stretch; gap: 0; padding: 8px 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--white); box-shadow: 0 16px 40px rgba(25,24,54,.12); }
       .nav.is-open { display: flex; }
@@ -234,7 +236,6 @@
       .about { gap: 5%; }
       .team-grid { gap: 9px; }
       .team-card { min-height: 230px; padding: 18px; }
-      .team-card h3 { font-size: 22px; }
       .social-section { grid-template-columns: 1fr; gap: 27px; padding-top: 0; }
       .instagram-card { padding: 12px; }
       .instagram-publication { flex-direction: column; }
@@ -248,7 +249,7 @@
     }
     @media (max-width: 650px) {
       .shell { width: min(100% - 34px, 500px); }
-      .topbar { min-height: 72px; }
+      .topbar-inner { min-height: 72px; }
       .brand-mark { width: 40px; height: 40px; flex-basis: 40px; }
       .brand-name { font-size: 12px; }
       .menu-toggle { display: inline-flex; }
@@ -277,7 +278,6 @@
       .teams-heading > p { margin-top: 17px; font-size: 13px; }
       .team-grid { grid-template-columns: 1fr; gap: 10px; }
       .team-card { min-height: 196px; }
-      .team-card h3 { font-size: 26px; }
       .team-tab { min-height: 154px; }
       .schedule-heading { align-items: flex-start; flex-direction: column; }
       .fixture-list { grid-template-columns: 1fr; max-height: 72vh; }
@@ -302,8 +302,14 @@
     }
 
     .sync-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin: 32px 0 18px; }
-    .sync-toolbar p { margin: 0; color: rgba(255,255,255,.7); font-size: 11px; line-height: 1.5; }
-    .sync-toolbar p[data-state="error"] { color: #f0b6c2; }
+    .sync-toolbar p { margin: 0; color: rgba(255,255,255,.78); font-size: 12px; line-height: 1.5; }
+    .sync-toolbar p[data-state="error"], .sync-toolbar p[data-state="stale"] { color: #ffe1ac; }
+    .schedule-overview { min-width: 0; }
+    .schedule-overview h2 { margin: 0 0 6px; font-size: clamp(23px, 3vw, 34px); letter-spacing: -.045em; }
+    .schedule-source { display: inline-block; margin-top: 6px; color: var(--lilac); font-size: 12px; text-underline-offset: 3px; }
+    .schedule-team-picker { display: grid; min-width: 0; width: min(100%, 240px); flex: 0 0 auto; gap: 5px; color: var(--lilac); font-size: 12px; font-weight: 750; }
+    .schedule-team-picker[hidden] { display: none; }
+    .schedule-team-picker select { width: 100%; min-height: 44px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--white); color: var(--ink); font: inherit; cursor: pointer; }
     .calendar-controls { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: -4px 0 16px; }
     .league-pdf-menu { position: relative; margin-left: auto; flex: 0 0 auto; }
     .league-pdf-toggle { display: flex; min-height: 36px; align-items: center; gap: 7px; padding: 7px 11px; border: 1px solid transparent; border-radius: 99px; color: var(--muted); font-size: 11px; font-weight: 750; cursor: pointer; list-style: none; }
@@ -333,8 +339,6 @@
     .round-view-filter { display: flex; align-items: center; gap: 9px; margin: 0; color: var(--muted); font-size: 11px; font-weight: 750; }
     .round-view-filter select { min-height: 36px; padding: 0 32px 0 12px; border: 1px solid var(--line); border-radius: 99px; background: #fff; color: var(--ink); font: inherit; cursor: pointer; }
     @media (min-width: 761px) {
-      .schedule-panel[data-round-view="current"] .fixture-card:not(.is-current),
-      .schedule-panel[data-round-view="selected"] .fixture-card:not(.is-selected) { display: none; }
       .schedule-panel[data-round-view="current"] .round-navigation,
       .schedule-panel[data-round-view="selected"] .round-navigation,
       .schedule-panel[data-round-view="current"] .calendar-controls,
@@ -347,8 +351,6 @@
     @media (max-width: 760px) { .round-view-filter { display: none; } }
     .team-panels { display: grid; gap: 18px; }
     .team-tab { min-height: 172px; }
-    .team-tab .team-card-copy h3 { font-size: clamp(20px, 2.5vw, 26px); }
-    .team-tab .team-card-copy p { max-width: 100%; }
     .roster-section { margin-top: 30px; padding-top: 24px; border-top: 1px solid var(--line); }
     .roster-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
     .roster-heading h4 { margin: 0; font-size: 20px; font-weight: 850; letter-spacing: -.045em; }
@@ -382,7 +384,7 @@
 
     @media (max-width: 650px) {
       .shell { width: min(calc(100% - 32px), 500px); }
-      .topbar { min-height: 64px; gap: 12px; padding-block: 8px; }
+      .topbar-inner { min-height: 64px; gap: 12px; padding-block: 8px; }
       .brand { min-width: 0; gap: 9px; }
       .brand-mark { width: 36px; height: 36px; flex-basis: 36px; }
       .brand-name { font-size: 11px; white-space: nowrap; }
@@ -422,17 +424,17 @@
       .teams-heading { margin-bottom: 18px; }
       .teams-heading > p { margin-top: 12px; font-size: 12px; line-height: 1.55; }
       .team-grid.team-tabs { display: flex; gap: 12px; overflow-x: auto; margin-inline: -16px; padding: 8px 16px 15px; scroll-snap-type: x mandatory; scrollbar-color: rgba(255,255,255,.55) rgba(255,255,255,.12); scrollbar-width: thin; }
-      .team-tab { flex: 0 0 min(80vw, 290px); width: min(80vw, 290px); min-height: 140px; padding: 16px; scroll-snap-align: start; }
+      .team-tab { flex: 0 0 min(70vw, 258px); width: min(70vw, 258px); min-height: 122px; padding: 16px; scroll-snap-align: start; }
       .team-card::after { right: -29px; bottom: -42px; width: 112px; }
       .team-tab .team-index { font-size: 8px; }
       .team-tab .team-index span:last-child { width: 26px; height: 26px; font-size: 13px; }
-      .team-tab .team-card-copy h3 { margin-bottom: 5px; font-size: 20px; }
-      .team-tab .team-card-copy p { font-size: 10px; line-height: 1.4; }
+      .team-card-title { margin-bottom: 5px; font-size: 20px; }
+      .team-card-competition { font-size: 11px; line-height: 1.4; }
       .team-tab[aria-selected="true"] { outline-offset: 2px; }
       #inici, #club, #equips, #actualitat, #visita, .schedules, .schedule-panel { scroll-margin-top: 88px; }
       .schedules { padding-block: 0 42px; }
-      .sync-toolbar { align-items: flex-start; gap: 12px; margin-top: 24px; margin-bottom: 15px; }
-      .sync-toolbar p { max-width: 260px; font-size: 10px; line-height: 1.5; }
+      .sync-toolbar { align-items: flex-start; flex-direction: column; gap: 14px; margin-top: 24px; margin-bottom: 15px; }
+      .schedule-team-picker { width: 100%; }
       .sync-toolbar .round-link { min-height: 40px; padding-inline: 13px; font-size: 10px; }
       .schedule-panel { padding: 19px 16px; border-radius: 8px 22px 8px 22px; }
       .schedule-heading { align-items: flex-start; flex-direction: row; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
@@ -447,15 +449,14 @@
       .round-indicator strong { font-size: 16px; }
       .round-indicator span { font-size: 10px; }
       .fixture-list { max-height: none; overflow: visible; padding: 0; border: 0; background: transparent; gap: 8px; }
-      .fixture-list .fixture-card:not(.is-selected) { display: none; }
       .fixture-card { grid-template-columns: minmax(0, 1fr); gap: 11px; min-height: 0; padding: 14px; }
       .fixture-day { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-      .fixture-round, .fixture-date { font-size: 9px; }
+      .fixture-round, .fixture-date { font-size: 12px; }
       .fixture-game { grid-template-columns: minmax(0, 1fr) 42px minmax(0, 1fr); gap: 6px; }
-      .fixture-team { gap: 5px; font-size: 10px; line-height: 1.35; }
+      .fixture-team { gap: 5px; font-size: 12px; line-height: 1.35; }
       .fixture-team-badge { width: 26px; height: 26px; flex-basis: 26px; }
-      .fixture-result { min-height: 30px; font-size: 10px; }
-      .fixture-meta { gap: 7px 9px; margin-top: 9px; font-size: 9px; }
+      .fixture-result { min-height: 30px; font-size: 11px; }
+      .fixture-meta { gap: 7px 9px; margin-top: 9px; font-size: 11px; }
       .fixture-status { padding: 4px 6px; }
       .calendar-note { font-size: 10px; }
 
@@ -496,7 +497,7 @@
 
     @media (max-width: 370px) {
       .shell { width: calc(100% - 24px); }
-      .topbar { gap: 6px; }
+      .topbar-inner { gap: 6px; }
       .brand { gap: 7px; }
       .brand-mark { width: 33px; height: 33px; flex-basis: 33px; }
       .brand-name { font-size: 10px; }
@@ -504,7 +505,7 @@
       .top-actions { gap: 6px; }
       .language button { min-width: 26px; padding-inline: 5px; }
       .menu-toggle { width: 40px; height: 40px; }
-      .team-tab { flex-basis: min(80vw, 270px); width: min(80vw, 270px); }
+      .team-tab { flex-basis: 70vw; width: 70vw; }
       .team-grid.team-tabs { margin-inline: -12px; padding-inline: 12px; }
       .schedule-panel { padding-inline: 11px; }
       .fixture-card { padding: 9px; }
@@ -586,9 +587,9 @@
 </head>
 <body>
   <a class="skip-link" href="#main" data-ca="Salta al contingut" data-es="Saltar al contenido">Salta al contingut</a>
-  <header class="shell topbar">
+  <header class="topbar"><div class="shell topbar-inner">
     <a class="brand" href="#inici" aria-label="Amics Handbol La Canonja — inici">
-      <span class="brand-mark" aria-hidden="true"><img src="https://balonmano.isquad.es/images/afiliacion_clubs/100639/square_73326d626f6b37737763.jpg" alt="" fetchpriority="high"></span>
+      <span class="brand-mark" aria-hidden="true"><img src="./images/escut-128.png" alt="" width="40" height="40" decoding="async"></span>
       <span class="brand-name">Amics Handbol<span data-ca="La Canonja · des de 2017" data-es="La Canonja · desde 2017">La Canonja · des de 2017</span></span>
     </a>
     <nav class="nav" id="primary-nav" aria-label="Navegació principal" data-ca-label="Navegació principal" data-es-label="Navegación principal">
@@ -611,7 +612,7 @@
         <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 10h11m-4-4 4 4-4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </a>
     </div>
-  </header>
+  </div></header>
 
   <main id="main">
     <section class="shell hero" id="inici">
@@ -620,20 +621,22 @@
         <h1 data-ca-html="La Canonja<br>juga en <em>equip.</em>" data-es-html="La Canonja<br>juega en <em>equipo.</em>">La Canonja<br>juga en <em>equip.</em></h1>
         <p data-ca="Un club de poble, una pista plena d’energia i moltes ganes de compartir l’handbol. Vine a conèixer-nos i viu el pròxim partit des de la grada." data-es="Un club de pueblo, una pista llena de energía y muchas ganas de compartir el balonmano. Ven a conocernos y vive el próximo partido desde la grada.">Un club de poble, una pista plena d’energia i moltes ganes de compartir l’handbol. Vine a conèixer-nos i viu el pròxim partit des de la grada.</p>
         <div class="hero-buttons">
-          <a class="button-primary" href="#partits"><span data-ca="Anem a la pista" data-es="Vamos a la pista">Anem a la pista</span><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 10h11m-4-4 4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-          <a class="button-secondary" href="#club"><span data-ca="Coneix el club" data-es="Conoce el club">Coneix el club</span><span aria-hidden="true">↓</span></a>
+          <a class="button-primary" href="#partits"><span data-ca="Veure calendaris" data-es="Ver calendarios">Veure calendaris</span><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 10h11m-4-4 4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+          <a class="button-secondary" href="#visita"><span data-ca="Vine a provar" data-es="Ven a probar">Vine a provar</span><span aria-hidden="true">↓</span></a>
         </div>
       </div>
       <div class="hero-art" aria-label="Celebració de l’ascens d’Amics Handbol La Canonja amb jugadors, jugadores i afició" role="img" data-ca-label="Celebració de l’ascens d’Amics Handbol La Canonja amb jugadors, jugadores i afició" data-es-label="Celebración del ascenso de Amics Handbol La Canonja con jugadores y afición">
-        <img class="hero-photo" src="/images/ascenso_ahcjpeg.jpeg" alt="" aria-hidden="true" fetchpriority="high">
+        <img class="hero-photo" src="/images/ascens-1120.webp" srcset="/images/ascens-640.webp 640w, /images/ascens-1120.webp 1120w" sizes="(max-width: 650px) calc(100vw - 32px), (max-width: 1228px) 46vw, 560px" width="1120" height="746" alt="" aria-hidden="true" fetchpriority="high">
         <div class="hero-sticker" aria-hidden="true"><div><span>AHC</span><span data-ca="A pista ens uneix" data-es="La pista nos une">A pista ens uneix</span></div></div>
         <p class="art-caption" data-ca="Pista · passió · comunitat" data-es="Pista · pasión · comunidad">Pista · passió · comunitat</p>
       </div>
     </section>
 
-    <div class="marquee" aria-hidden="true"><div class="marquee-inner">
-      <span data-ca="Handbol i poble" data-es="Balonmano y pueblo">Handbol i poble</span><span data-ca="Fem equip" data-es="Hacemos equipo">Fem equip</span><span>La Canonja</span><span data-ca="Handbol i poble" data-es="Balonmano y pueblo">Handbol i poble</span><span data-ca="Fem equip" data-es="Hacemos equipo">Fem equip</span><span>La Canonja</span><span data-ca="Handbol i poble" data-es="Balonmano y pueblo">Handbol i poble</span><span data-ca="Fem equip" data-es="Hacemos equipo">Fem equip</span><span>La Canonja</span><span data-ca="Handbol i poble" data-es="Balonmano y pueblo">Handbol i poble</span><span data-ca="Fem equip" data-es="Hacemos equipo">Fem equip</span><span>La Canonja</span>
-    </div></div>
+    <div class="club-strip"><ul class="shell">
+      <li data-ca="Handbol de base" data-es="Balonmano de base">Handbol de base</li>
+      <li data-ca="Competició" data-es="Competición">Competició</li>
+      <li>La Canonja</li>
+    </ul></div>
 
     <section class="shell section about" id="club">
       <div>
@@ -668,10 +671,18 @@
       </div>
       <div class="shell section schedules" id="partits">
         <div class="sync-toolbar">
-          <p id="sync-status" role="status" aria-live="polite">Connectant amb els resultats oficials…</p>
+          <div class="schedule-overview">
+            <h2 id="schedule-title" tabindex="-1" data-ca="Calendaris i resultats" data-es="Calendarios y resultados">Calendaris i resultats</h2>
+            <p id="sync-status" role="status" aria-live="polite">Connectant amb els resultats oficials…</p>
+            <a class="schedule-source" href="https://resultadosbalonmano.isquad.es/club.php?id=100639&amp;id_superficie=1&amp;id_temp=2627" target="_blank" rel="noopener noreferrer" data-ca="Consultar a iSquad ↗" data-es="Consultar en iSquad ↗">Consultar a iSquad ↗</a>
+          </div>
+          <label class="schedule-team-picker" id="schedule-team-picker" hidden>
+            <span data-ca="Canviar d’equip" data-es="Cambiar de equipo">Canviar d’equip</span>
+            <select id="schedule-team-select"></select>
+          </label>
         </div>
         <div class="team-panels" id="team-panels">
-          <div class="calendar-pending"><div><strong>Carregant equips…</strong><p>Estem consultant les plantilles i les jornades de la temporada.</p></div></div>
+          <div class="calendar-pending"><div><strong data-ca="Carregant equips…" data-es="Cargando equipos…">Carregant equips…</strong><p data-ca="Estem consultant les plantilles i les jornades de la temporada." data-es="Estamos consultando las plantillas y las jornadas de la temporada.">Estem consultant les plantilles i les jornades de la temporada.</p></div></div>
         </div>
       </div>
     </section>
@@ -712,7 +723,7 @@
 
   <footer>
     <div class="shell footer-inner">
-      <a class="brand" href="#inici" aria-label="Amics Handbol La Canonja — inici"><span class="brand-mark" aria-hidden="true"><img src="https://balonmano.isquad.es/images/afiliacion_clubs/100639/square_73326d626f6b37737763.jpg" alt="" loading="lazy"></span><span class="brand-name">Amics Handbol<span data-ca="La Canonja · handbol i poble" data-es="La Canonja · balonmano y pueblo">La Canonja · handbol i poble</span></span></a>
+      <a class="brand" href="#inici" aria-label="Amics Handbol La Canonja — inici"><span class="brand-mark" aria-hidden="true"><img src="./images/escut-128.png" alt="" width="40" height="40" loading="lazy" decoding="async"></span><span class="brand-name">Amics Handbol<span data-ca="La Canonja · handbol i poble" data-es="La Canonja · balonmano y pueblo">La Canonja · handbol i poble</span></span></a>
       <p class="footer-note">© <span id="year">2026</span> Amics Handbol La Canonja</p>
       <div class="footer-links"><a href="https://www.instagram.com/amicshandbolcanonja/" target="_blank" rel="noopener noreferrer">Instagram ↗</a><a href="https://x.com/amicshandbol" target="_blank" rel="noopener noreferrer">X ↗</a><a href="https://kaurifactory.com/invitar-usuario/4740db79-19ac-4e46-9a74-5a26766eb001" target="_blank" rel="noopener noreferrer" data-ca="Botiga del club ↗" data-es="Tienda del club ↗">Botiga del club ↗</a><a href="https://www.lacanonja.cat/ova_sev/entitats/" target="_blank" rel="noopener noreferrer" data-ca="Ajuntament" data-es="Ayuntamiento">Ajuntament</a></div>
     </div>
@@ -731,6 +742,11 @@
       const favoriteCountNode = document.getElementById("team-favorite-count");
       const teamEmptyNode = document.getElementById("team-empty");
       const panelsNode = document.getElementById("team-panels");
+      const teamPicker = document.getElementById("schedule-team-picker");
+      const teamSelect = document.getElementById("schedule-team-select");
+      const scheduleDataUrl = "/api/data";
+      const compactCalendar = window.matchMedia("(max-width: 760px)");
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
       const statusNode = document.getElementById("sync-status");
       const menuButton = document.getElementById("menu-toggle");
       const siteNav = document.getElementById("primary-nav");
@@ -762,6 +778,7 @@
       const leagueRoundSelections = {};
       let lastLoad = 0;
       let loading = false;
+      let calendarLoadFailed = false;
       let instagramStatusKey = "loading";
       let instagramPostUrl = instagramProfileUrl;
       let instagramPostIsLatest = false;
@@ -771,9 +788,12 @@
 
       const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[character]));
       const normalizePlayerName = (value) => String(value ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
+      const dateFormats = Object.fromEntries(["ca", "es"].map((lang) => [
+        lang, new Intl.DateTimeFormat(lang + "-ES", { day: "2-digit", month: "short" }),
+      ]));
       const formatDate = (iso) => {
         if (!iso) return language === "ca" ? "Data pendent" : "Fecha pendiente";
-        return new Intl.DateTimeFormat(language === "ca" ? "ca-ES" : "es-ES", { day: "2-digit", month: "short" }).format(new Date(iso + "T12:00:00"));
+        return dateFormats[language].format(new Date(iso + "T12:00:00"));
       };
       const formatUpdatedAt = (iso) => {
         return new Intl.DateTimeFormat(language === "ca" ? "ca-ES" : "es-ES", { dateStyle: "short", timeStyle: "short", timeZone: "Europe/Madrid" }).format(new Date(iso));
@@ -782,15 +802,19 @@
         season: "Temporada", calendar: "Calendari", fixtures: "jornades", players: "jugadors", roster: "Plantilla",
         played: "Finalitzat", pending: "Pendent", suspended: "Ajornat", home: "Local", away: "Visitant", time: "Hora pendent",
         next: "Proper partit", noFixtures: "Encara no hi ha jornades publicades", noFixturesText: "Quan iSquad publiqui el calendari d’aquesta secció, els partits apareixeran aquí ordenats per data.",
-        noPlayers: "La plantilla encara no està publicada.", update: "Resultats i PDF actualitzats automàticament.",
-        unavailable: "No s’ha pogut consultar iSquad. Torna-ho a provar d’aquí a uns minuts.", loading: "Connectant amb els resultats oficials…",
+        noPlayers: "La plantilla encara no està publicada.",
+        unavailable: "Ara mateix no podem mostrar el calendari. Consulta els resultats a iSquad.",
+        stale: "Les dades poden haver canviat. Consulta els resultats més recents a iSquad.",
+        loading: "Connectant amb els resultats oficials…",
         updated: "Actualitzat", source: "Dades de temporada 2026/27"
       } : {
         season: "Temporada", calendar: "Calendario", fixtures: "jornadas", players: "jugadores", roster: "Plantilla",
         played: "Finalizado", pending: "Pendiente", suspended: "Aplazado", home: "Local", away: "Visitante", time: "Hora pendiente",
         next: "Próximo partido", noFixtures: "Todavía no hay jornadas publicadas", noFixturesText: "Cuando iSquad publique el calendario de esta sección, los partidos aparecerán aquí ordenados por fecha.",
-        noPlayers: "La plantilla aún no está publicada.", update: "Resultados y PDF actualizados automáticamente.",
-        unavailable: "No se ha podido consultar iSquad. Vuelve a intentarlo dentro de unos minutos.", loading: "Conectando con los resultados oficiales…",
+        noPlayers: "La plantilla aún no está publicada.",
+        unavailable: "Ahora mismo no podemos mostrar el calendario. Consulta los resultados en iSquad.",
+        stale: "Los datos pueden haber cambiado. Consulta los resultados más recientes en iSquad.",
+        loading: "Conectando con los resultados oficiales…",
         updated: "Actualizado", source: "Datos de temporada 2026/27"
       };
       const teamWords = () => language === "ca" ? {
@@ -809,11 +833,11 @@
 
       function updateStaticLanguage() {
         document.documentElement.lang = language;
-        document.title = language === "ca" ? "Amics Handbol La Canonja — Equips i calendari" : "Amics Handbol La Canonja — Equipos y calendario";
+        document.title = language === "ca" ? "Amics Handbol La Canonja · Equips, calendaris i resultats" : "Amics Handbol La Canonja · Equipos, calendarios y resultados";
         const description = document.querySelector('meta[name="description"]');
         if (description) description.content = language === "ca"
-          ? "Amics Handbol La Canonja: equips, calendaris i plantilles sincronitzats amb la temporada."
-          : "Amics Handbol La Canonja: equipos, calendarios y plantillas sincronizados con la temporada.";
+          ? "Web d’Amics Handbol La Canonja. Consulta els equips, els calendaris, els resultats i com venir a jugar o animar al poliesportiu."
+          : "Web de Amics Handbol La Canonja. Consulta los equipos, los calendarios, los resultados y cómo venir a jugar o animar al polideportivo.";
         textNodes.forEach((node) => { node.textContent = node.dataset[language]; });
         htmlNodes.forEach((node) => { node.innerHTML = node.dataset[language + "Html"]; });
         labelNodes.forEach((node) => { node.setAttribute("aria-label", node.dataset[language + "Label"]); });
@@ -1022,11 +1046,11 @@
         const ownAway = fixture.awayId === team.id;
         const homeName = ownHome ? "Amics H.C." : fixture.homeName;
         const awayName = ownAway ? "Amics H.C." : fixture.awayName;
-        const clubBadgeUrl = "https://balonmano.isquad.es/images/afiliacion_clubs/100639/square_73326d626f6b37737763.jpg";
+        const clubBadgeUrl = "./images/escut-128.png";
         const noBadgeUrl = "https://balonmano.isquad.es/images/sinescudo.png";
         const badgeMarkup = (url) => '<img class="fixture-team-badge" src="' + escapeHtml(url) + '" alt="" loading="lazy" decoding="async" onerror="this.onerror=null;this.src=\'https://balonmano.isquad.es/images/sinescudo.png\';">';
-        const homeBadgeUrl = fixture.homeBadgeUrl || (ownHome ? clubBadgeUrl : noBadgeUrl);
-        const awayBadgeUrl = fixture.awayBadgeUrl || (ownAway ? clubBadgeUrl : noBadgeUrl);
+        const homeBadgeUrl = ownHome ? clubBadgeUrl : (fixture.homeBadgeUrl || noBadgeUrl);
+        const awayBadgeUrl = ownAway ? clubBadgeUrl : (fixture.awayBadgeUrl || noBadgeUrl);
         const result = fixture.state === "played" && fixture.homeScore !== "" && fixture.awayScore !== "" ? fixture.homeScore + "–" + fixture.awayScore : "VS";
         const statusLabel = fixture.state === "played" ? words().played : fixture.state === "suspended" ? words().suspended : words().pending;
         const timeLabel = fixture.time ? escapeHtml(fixture.time) + " h" : words().time;
@@ -1049,31 +1073,38 @@
       function renderTabs() {
         if (!siteData?.teams?.length) return;
         const validKeys = new Set(siteData.teams.map((team) => team.key));
-        favoriteTeams = new Set([...favoriteTeams].filter((key) => validKeys.has(key)));
-        saveFavoriteTeams();
+        if ([...favoriteTeams].some((key) => !validKeys.has(key))) {
+          favoriteTeams = new Set([...favoriteTeams].filter((key) => validKeys.has(key)));
+          saveFavoriteTeams();
+        }
         const visibleTeams = siteData.teams.filter((team) => teamFilter === "all" || favoriteTeams.has(team.key));
         const labels = teamWords();
         favoriteCountNode.textContent = String(favoriteTeams.size);
-        tabsNode.setAttribute("aria-label", labels.filterLabel);
         teamFilterButtons.forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.teamFilter === teamFilter)));
         teamEmptyNode.hidden = visibleTeams.length > 0;
         teamEmptyNode.textContent = visibleTeams.length ? "" : labels.noFavorites;
+        teamPicker.hidden = false;
+        teamSelect.innerHTML = '<option value="" disabled>' + (language === "ca" ? "Tria un equip" : "Elige un equipo") + '</option>' +
+          siteData.teams.map((team) => '<option value="' + escapeHtml(team.key) + '">' + escapeHtml(language === "ca" ? team.nameCa : team.nameEs) + '</option>').join("");
         if (!visibleTeams.length) {
           tabsNode.innerHTML = "";
+          teamSelect.value = "";
           return;
         }
         if (!visibleTeams.some((team) => team.key === activeTeamKey)) {
           activeTeamKey = visibleTeams[0].key;
           saveActiveTeam();
         }
+        teamSelect.value = activeTeamKey;
         tabsNode.innerHTML = visibleTeams.map((team, index) => {
           const selected = team.key === activeTeamKey;
           const title = language === "ca" ? team.nameCa : team.nameEs;
           const competition = language === "ca" ? team.competitionCa : team.competitionEs;
           const favoriteIndicator = favoriteTeams.has(team.key) ? '<span class="team-favorite-indicator"><span aria-hidden="true">★</span> ' + escapeHtml(labels.favorite) + '</span>' : "";
-          return '<button class="team-card team-tab" type="button" role="tab" id="tab-' + escapeHtml(team.key) + '" aria-controls="schedule-' + escapeHtml(team.key) + '" aria-selected="' + selected + '" tabindex="' + (selected ? '0' : '-1') + '" data-team-tab="' + escapeHtml(team.key) + '">' +
+          const tabName = title + (favoriteTeams.has(team.key) ? ", " + labels.favorite : "");
+          return '<button class="team-card team-tab" type="button" role="tab" id="tab-' + escapeHtml(team.key) + '" aria-label="' + escapeHtml(tabName) + '" aria-controls="schedule-' + escapeHtml(team.key) + '" aria-selected="' + selected + '" tabindex="' + (selected ? '0' : '-1') + '" data-team-tab="' + escapeHtml(team.key) + '">' +
             '<span class="team-index"><span>' + escapeHtml(words().season) + ' · ' + escapeHtml(siteData.season) + '</span><span>' + String(index + 1).padStart(2, "0") + '</span></span>' +
-            '<span class="team-card-copy"><h3>' + escapeHtml(title) + '</h3><p>' + escapeHtml(competition) + '</p>' + favoriteIndicator + '</span></button>';
+            '<span class="team-card-copy"><span class="team-card-title">' + escapeHtml(title) + '</span><span class="team-card-competition">' + escapeHtml(competition) + '</span>' + favoriteIndicator + '</span></button>';
         }).join("");
         [...tabsNode.querySelectorAll("[data-team-tab]")].forEach((tab, index, tabs) => {
           tab.addEventListener("click", () => selectTeam(tab.dataset.teamTab));
@@ -1117,12 +1148,26 @@
         else favoriteTeams.add(teamKey);
         saveFavoriteTeams();
         renderData();
+        const nextFavorite = panelsNode.querySelector("[data-team-favorite]");
+        (nextFavorite || teamSelect).focus({ preventScroll: true });
       }
 
       function renderPanels() {
         if (!siteData?.teams?.length) return;
-        const panels = siteData.teams.map((team) => {
-          const active = team.key === activeTeamKey && (teamFilter === "all" || favoriteTeams.has(team.key));
+        const visibleTeams = siteData.teams.filter((team) => teamFilter === "all" || favoriteTeams.has(team.key));
+        const previousPanel = panelsNode.querySelector(".schedule-panel:not([hidden])");
+        const openDetails = ["league-pdf-menu", "standings-section", "roster-section"].filter((section) =>
+          previousPanel?.querySelector("details." + section + "[open]"));
+        const previousFocus = previousPanel?.contains(document.activeElement) ? document.activeElement : null;
+        const focusCandidates = ["[data-round-view-filter]", "[data-league-round]", "[data-team-favorite]", ".league-pdf-download",
+          ".league-pdf-menu summary", ".standings-section summary", ".roster-section summary"];
+        const restoreFocus = previousFocus?.hasAttribute("data-round-control")
+          ? '[data-round-control][data-round-direction="' + previousFocus.dataset.roundDirection + '"]:not(:disabled)'
+          : focusCandidates.find((selector) => previousFocus?.matches(selector));
+        const panels = visibleTeams.map((team) => {
+          if (team.key !== activeTeamKey) {
+            return '<div role="tabpanel" id="schedule-' + escapeHtml(team.key) + '" aria-labelledby="tab-' + escapeHtml(team.key) + '" hidden></div>';
+          }
           const title = language === "ca" ? team.nameCa : team.nameEs;
           const competition = language === "ca" ? team.competitionCa : team.competitionEs;
           const fixtures = team.fixtures || [];
@@ -1130,11 +1175,14 @@
           const next = nextFixture?.round;
           const currentFixture = currentRoundFixture(team);
           const currentRound = currentFixture?.round;
-          if (!fixtures.some((fixture) => fixture.round === selectedRounds[team.key])) selectedRounds[team.key] = currentRound;
-          const selectedRound = selectedRounds[team.key];
           if (!roundDisplayModes[team.key]) roundDisplayModes[team.key] = "current";
           const roundDisplayMode = roundDisplayModes[team.key];
+          if (roundDisplayMode === "current" || !fixtures.some((fixture) => fixture.round === selectedRounds[team.key])) selectedRounds[team.key] = currentRound;
+          const selectedRound = selectedRounds[team.key];
           const selectedRoundIndex = fixtures.findIndex((fixture) => fixture.round === selectedRound);
+          const visibleFixtures = roundDisplayMode === "all" && !compactCalendar.matches
+            ? fixtures
+            : fixtures.filter((fixture) => fixture.round === (roundDisplayMode === "current" ? currentRound : selectedRound));
           const rosterPlayers = [
             ...(team.players || []).map((name) => ({ name, invited: false })),
             ...(team.guests || []).map((name) => ({ name, invited: true })),
@@ -1165,7 +1213,7 @@
               '<option value="all"' + (roundDisplayMode === "all" ? " selected" : "") + '>' + escapeHtml(language === "ca" ? "Totes les jornades" : "Todas las jornadas") + '</option></select></label>'
             : "";
           const calendar = fixtures.length
-            ? '<div class="fixture-list" role="list" aria-label="' + escapeHtml(language === "ca" ? "Partits de " + title : "Partidos de " + title) + '">' + fixtures.map((fixture) => fixtureMarkup(team, fixture, next, currentRound, selectedRound)).join("") + '</div>'
+            ? '<div class="fixture-list" role="list" aria-label="' + escapeHtml(language === "ca" ? "Partits de " + title : "Partidos de " + title) + '">' + visibleFixtures.map((fixture) => fixtureMarkup(team, fixture, next, currentRound, selectedRound)).join("") + '</div>'
             : '<div class="fixture-empty"><strong>' + escapeHtml(words().noFixtures) + '</strong>' + escapeHtml(words().noFixturesText) + '</div>';
           const players = rosterPlayers.length
             ? '<ol class="roster-grid">' + rosterPlayers.map(({ name: player, invited }) => {
@@ -1188,13 +1236,21 @@
           const favoriteLabel = isFavorite ? teamWords().removeFavorite : teamWords().addFavorite;
           const favoriteToolbar = '<div class="favorite-toolbar"><button class="team-favorite-toggle" type="button" data-team-favorite="' + escapeHtml(team.key) + '" aria-pressed="' + isFavorite + '"><span class="team-favorite-toggle-icon" aria-hidden="true">' + (isFavorite ? '★' : '☆') + '</span><span>' + escapeHtml(favoriteLabel) + '</span></button></div>';
           const standingsMarkup = renderStandings(team);
-          return '<section class="schedule-panel" data-round-view="' + escapeHtml(roundDisplayMode) + '" role="tabpanel" id="schedule-' + escapeHtml(team.key) + '" aria-labelledby="tab-' + escapeHtml(team.key) + '"' + (active ? '' : ' hidden') + '>' +
+          return '<section class="schedule-panel" data-round-view="' + escapeHtml(roundDisplayMode) + '" role="tabpanel" id="schedule-' + escapeHtml(team.key) + '" aria-labelledby="tab-' + escapeHtml(team.key) + '">' +
             '<div class="schedule-heading"><div><p class="section-label">' + escapeHtml(words().calendar) + ' · ' + escapeHtml(siteData.season) + '</p><h3>' + escapeHtml(title) + '</h3><p>' + escapeHtml(competition) + '</p></div><span class="schedule-stamp">' + fixtures.length + ' ' + escapeHtml(words().fixtures) + '</span></div>' +
-            favoriteToolbar + roundNavigation + '<div class="calendar-controls">' + roundViewFilter + renderLeagueDownloads(team) + '</div>' + calendar + '<p class="calendar-note">' + escapeHtml(words().update) + '</p>' + standingsMarkup +
+            favoriteToolbar + roundNavigation + '<div class="calendar-controls">' + roundViewFilter + renderLeagueDownloads(team) + '</div>' + calendar + standingsMarkup +
             '<details class="roster-section"><summary class="roster-heading"><h4>' + escapeHtml(words().roster) + '</h4><span class="roster-summary-meta">' + rosterPlayers.length + ' ' + escapeHtml(words().players) + '</span><span class="roster-chevron" aria-hidden="true">⌄</span></summary><div class="roster-content">' + scorerSourceNote + players +
             '<div class="staff-section"><div class="roster-heading"><h4>' + escapeHtml(staffTitle) + '</h4><span>' + (team.staff?.length || 0) + ' ' + escapeHtml(staffCount) + '</span></div>' + staff + '</div></div></details></section>';
         });
-        panelsNode.innerHTML = panels.join("");
+        panelsNode.innerHTML = panels.join("") || '<div class="calendar-pending"><p>' + escapeHtml(teamWords().noFavorites) + '</p></div>';
+        const activePanel = panelsNode.querySelector(".schedule-panel");
+        if (activePanel && activePanel.id === previousPanel?.id) {
+          openDetails.forEach((section) => {
+            const disclosure = activePanel.querySelector("details." + section);
+            if (disclosure) disclosure.open = true;
+          });
+          if (restoreFocus) activePanel.querySelector(restoreFocus)?.focus({ preventScroll: true });
+        }
         panelsNode.querySelectorAll("[data-round-control]").forEach((button) => button.addEventListener("click", () => {
           const teamKey = button.dataset.teamKey;
           const direction = Number(button.dataset.roundDirection);
@@ -1206,18 +1262,17 @@
           selectedRounds[teamKey] = nextFixture.round;
           if (team.league?.rounds?.some((round) => round.number === nextFixture.round)) leagueRoundSelections[teamKey] = nextFixture.round;
           roundDisplayModes[teamKey] = "selected";
-          renderData();
+          renderPanels();
           const panel = panelsNode.querySelector('#schedule-' + CSS.escape(teamKey));
           const nextControl = panel?.querySelector('[data-round-control][data-round-direction="' + direction + '"]:not(:disabled)') || panel?.querySelector('[data-round-control]:not(:disabled)');
           nextControl?.focus({ preventScroll: true });
-          if (window.matchMedia("(min-width: 651px)").matches) panel?.querySelector('[data-round="' + nextFixture.round + '"]')?.scrollIntoView({ behavior: "smooth", block: "nearest" });
         }));
         panelsNode.querySelectorAll("[data-round-view-filter]").forEach((select) => select.addEventListener("change", () => {
           const teamKey = select.dataset.teamKey;
           const team = siteData.teams.find((item) => item.key === teamKey);
           roundDisplayModes[teamKey] = ["current", "selected", "all"].includes(select.value) ? select.value : "current";
           if (roundDisplayModes[teamKey] === "current") selectedRounds[teamKey] = currentRoundFixture(team)?.round;
-          renderData();
+          renderPanels();
         }));
         panelsNode.querySelectorAll("[data-team-favorite]").forEach((button) => button.addEventListener("click", () => toggleFavorite(button.dataset.teamFavorite)));
         panelsNode.querySelectorAll("[data-league-round]").forEach((select) => select.addEventListener("change", () => {
@@ -1277,36 +1332,51 @@
         renderPanels();
       }
 
-      function selectTeam(key, moveFocus = false) {
+      function selectTeam(key, moveFocus = false, scroll = true) {
         activeTeamKey = key;
         saveActiveTeam();
         renderData();
         if (moveFocus) tabsNode.querySelector('[data-team-tab="' + CSS.escape(key) + '"]')?.focus();
-        else document.getElementById("schedule-" + key)?.scrollIntoView({ behavior: "smooth", block: "start" });
+        else if (scroll) {
+          document.getElementById("schedule-title").focus({ preventScroll: true });
+          document.getElementById("partits").scrollIntoView({ behavior: reducedMotion.matches ? "auto" : "smooth", block: "start" });
+        }
       }
 
       function setStatus(text, state = "ok") {
-        statusNode.textContent = text;
+        if (statusNode.textContent !== text) statusNode.textContent = text;
         statusNode.dataset.state = state;
+      }
+
+      function updateCalendarStatus() {
+        if (!siteData) {
+          setStatus(calendarLoadFailed ? words().unavailable : words().loading, calendarLoadFailed ? "error" : "ok");
+          return;
+        }
+        const stale = calendarLoadFailed || Date.now() - Date.parse(siteData.generatedAt) > 24 * 60 * 60 * 1000;
+        setStatus(words().updated + " " + formatUpdatedAt(siteData.generatedAt) + (stale ? " · " + words().stale : ""), stale ? "stale" : "ok");
       }
 
       async function loadData() {
         if (loading) return;
         loading = true;
-        if (!siteData) setStatus(words().loading);
         try {
-          const response = await fetch("/api/data", { cache: "no-store" });
+          const response = await fetch(scheduleDataUrl, { cache: "no-cache", signal: AbortSignal.timeout?.(15000) });
           if (!response.ok) throw new Error("data unavailable");
-          siteData = await response.json();
-          if (!activeTeamKey && siteData.teams.length) activeTeamKey = siteData.teams[0].key;
-          renderData();
-          lastLoad = Date.now();
-          const updated = formatUpdatedAt(siteData.generatedAt);
-          setStatus(words().updated + " " + updated + " · " + words().update);
+          const nextData = await response.json();
+          if (!nextData?.teams?.length || !Number.isFinite(Date.parse(nextData.generatedAt))) throw new Error("invalid calendar");
+          if (nextData.generatedAt !== siteData?.generatedAt) {
+            siteData = nextData;
+            renderData();
+          }
+          calendarLoadFailed = false;
         } catch {
-          setStatus(words().unavailable, "error");
+          calendarLoadFailed = true;
+          if (!siteData) panelsNode.replaceChildren();
         } finally {
+          lastLoad = Date.now();
           loading = false;
+          updateCalendarStatus();
         }
       }
 
@@ -1314,10 +1384,7 @@
         language = button.dataset.lang === "es" ? "es" : "ca";
         updateStaticLanguage();
         renderData();
-        if (siteData) {
-          const updated = formatUpdatedAt(siteData.generatedAt);
-          setStatus(words().updated + " " + updated + " · " + words().update);
-        }
+        updateCalendarStatus();
         try { localStorage.setItem("ahc-language", language); } catch {}
       }));
       teamFilterButtons.forEach((button) => button.addEventListener("click", () => {
@@ -1325,12 +1392,21 @@
         try { localStorage.setItem("ahc-team-filter", teamFilter); } catch {}
         renderData();
       }));
+      teamSelect.addEventListener("change", () => {
+        const key = teamSelect.value;
+        if (!siteData?.teams.some((team) => team.key === key)) return;
+        if (teamFilter === "favorites" && !favoriteTeams.has(key)) {
+          teamFilter = "all";
+          try { localStorage.setItem("ahc-team-filter", teamFilter); } catch {}
+        }
+        selectTeam(key, false, false);
+      });
+      compactCalendar.addEventListener("change", renderPanels);
       document.addEventListener("click", (event) => {
-        if (!event.target.isConnected) return;
         panelsNode.querySelectorAll(".league-pdf-menu[open]").forEach((menu) => {
           if (!menu.contains(event.target)) menu.open = false;
         });
-      });
+      }, true);
       document.addEventListener("keydown", (event) => {
         if (event.key !== "Escape") return;
         panelsNode.querySelectorAll(".league-pdf-menu[open]").forEach((menu) => {
@@ -1355,7 +1431,14 @@
       updateStaticLanguage();
       document.getElementById("year").textContent = String(new Date().getFullYear());
       loadData();
-      loadInstagramProfile();
+      if ("IntersectionObserver" in window) {
+        const instagramObserver = new IntersectionObserver((entries) => {
+          if (!entries.some((entry) => entry.isIntersecting)) return;
+          instagramObserver.disconnect();
+          loadInstagramProfile();
+        }, { rootMargin: "500px 0px" });
+        instagramObserver.observe(document.getElementById("actualitat"));
+      } else loadInstagramProfile();
       window.setInterval(() => { if (document.visibilityState === "visible") loadData(); }, 5 * 60 * 1000);
       document.addEventListener("visibilitychange", () => {
         if (document.visibilityState === "visible" && Date.now() - lastLoad >= 5 * 60 * 1000) loadData();
