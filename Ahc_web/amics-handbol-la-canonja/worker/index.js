@@ -7,6 +7,9 @@ const SEASON_ID = "2627";
 const CACHE_TTL_SECONDS = 300;
 const SOURCE_ORIGIN = "https://resultadosbalonmano.isquad.es";
 const ACTA_ORIGIN = "https://balonmano.isquad.es";
+const SOURCE_USER_AGENT = "AmicsHandbolLaCanonja/1.0 (+https://amicshandbolcanonja.github.io/amicshandbollacanonja/)";
+const SOURCE_REQUEST_INTERVAL_MS = 1500;
+const MAX_SOURCE_RETRY_MS = 60000;
 const BADGE_URL = "https://balonmano.isquad.es/images/afiliacion_clubs/100639/square_73326d626f6b37737763.jpg";
 const INSTAGRAM_EMBED_URL = "https://www.instagram.com/amicshandbolcanonja/embed/";
 const INSTAGRAM_CACHE_TTL_SECONDS = 900;
@@ -16,18 +19,21 @@ const INSTAGRAM_CACHE_TTL_SECONDS = 900;
 let cachedData = null;
 let cachedAt = 0;
 let inFlightRefresh = null;
+let sourceQueue = Promise.resolve();
+let nextSourceRequestAt = 0;
+let sourceCooldownUntil = 0;
 let cachedInstagramPosts = null;
 let instagramCachedAt = 0;
 
 export const TEAM_CONFIG = [
   { id: "222243", key: "senior-masculi", category: "3077", competition: "211808", tournament: "1038562", nameCa: "Sènior masculí", nameEs: "Sénior masculino", competitionCa: "Segona Catalana · Grup B", competitionEs: "Segunda Catalana · Grupo B" },
   { id: "222242", key: "senior-femeni", category: "3076", competition: "211803", tournament: "1038568", nameCa: "Sènior femení", nameEs: "Sénior femenino", competitionCa: "Primera Catalana · Grup A", competitionEs: "Primera Catalana · Grupo A" },
-  { id: "222245", key: "juvenil-femeni", category: "3078", competition: "211813", tournament: "1038687", nameCa: "Juvenil femení", nameEs: "Juvenil femenino", competitionCa: "Primera Catalana juvenil femenina", competitionEs: "Primera Catalana juvenil femenina" },
-  { id: "222246", key: "juvenil-masculi", category: "3079", competition: "211822", tournament: "1038769", nameCa: "Juvenil masculí", nameEs: "Juvenil masculino", competitionCa: "Primera Catalana juvenil masculina", competitionEs: "Primera Catalana juvenil masculina" },
-  { id: "222247", key: "cadet-femeni", category: "3080", competition: "211816", tournament: "1038692", nameCa: "Cadet femení", nameEs: "Cadete femenino", competitionCa: "Primera Catalana cadet femenina", competitionEs: "Primera Catalana cadete femenina" },
-  { id: "222248", key: "cadet-masculi", category: "3081", competition: "211826", tournament: "1038761", nameCa: "Cadet masculí", nameEs: "Cadete masculino", competitionCa: "Primera Catalana cadet masculina", competitionEs: "Primera Catalana cadete masculina" },
-  { id: "222251", key: "infantil-femeni", category: "3082", competition: "211819", tournament: "1038699", nameCa: "Infantil femení", nameEs: "Infantil femenino", competitionCa: "Primera Catalana infantil femenina", competitionEs: "Primera Catalana infantil femenina" },
-  { id: "222252", key: "infantil-mixt", category: "3084", competition: "211830", tournament: "1038777", nameCa: "Infantil mixt", nameEs: "Infantil mixto", competitionCa: "Segona Catalana infantil mixta", competitionEs: "Segunda Catalana infantil mixta" },
+  { id: "222245", key: "juvenil-femeni", category: "3078", competition: "211813", tournament: "1038689", nameCa: "Juvenil femení", nameEs: "Juvenil femenino", competitionCa: "Primera Catalana juvenil femenina", competitionEs: "Primera Catalana juvenil femenina" },
+  { id: "222246", key: "juvenil-masculi", category: "3079", competition: "211822", tournament: "1038770", nameCa: "Juvenil masculí", nameEs: "Juvenil masculino", competitionCa: "Primera Catalana juvenil masculina", competitionEs: "Primera Catalana juvenil masculina" },
+  { id: "222247", key: "cadet-femeni", category: "3080", competition: "211816", tournament: "1038693", nameCa: "Cadet femení", nameEs: "Cadete femenino", competitionCa: "Primera Catalana cadet femenina", competitionEs: "Primera Catalana cadete femenina" },
+  { id: "222248", key: "cadet-masculi", category: "3081", competition: "211826", tournament: "1038766", nameCa: "Cadet masculí", nameEs: "Cadete masculino", competitionCa: "Primera Catalana cadet masculina", competitionEs: "Primera Catalana cadete masculina" },
+  { id: "222251", key: "infantil-femeni", category: "3082", competition: "211819", tournament: "1038700", nameCa: "Infantil femení", nameEs: "Infantil femenino", competitionCa: "Primera Catalana infantil femenina", competitionEs: "Primera Catalana infantil femenina" },
+  { id: "222252", key: "infantil-mixt", category: "3084", competition: "211830", tournament: "1038778", nameCa: "Infantil mixt", nameEs: "Infantil mixto", competitionCa: "Segona Catalana infantil mixta", competitionEs: "Segunda Catalana infantil mixta" },
   { id: "225572", key: "infantil-masculi", category: "3083", competition: "211829", tournament: "1038753", nameCa: "Infantil masculí", nameEs: "Infantil masculino", competitionCa: "Primera Catalana infantil masculina", competitionEs: "Primera Catalana infantil masculina" },
 ];
 
@@ -63,13 +69,35 @@ function textFromHtml(value) {
     .trim();
 }
 
-async function fetchHtml(url) {
-  const response = await fetch(url, {
-    headers: { accept: "text/html,application/xhtml+xml" },
-    signal: AbortSignal.timeout(20000),
+function retryDelay(value) {
+  const delay = value && (/^\d+$/.test(value) ? Number(value) * 1000 : Date.parse(value) - Date.now());
+  return Number.isFinite(delay) ? Math.max(SOURCE_REQUEST_INTERVAL_MS, delay) : 20000;
+}
+
+function fetchHtml(url) {
+  const request = sourceQueue.then(async () => {
+    for (let attempt = 0; ; attempt++) {
+      if (Date.now() < sourceCooldownUntil) throw new Error("iSquad requested a pause after HTTP 429");
+      const wait = nextSourceRequestAt - Date.now();
+      if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
+      nextSourceRequestAt = Date.now() + SOURCE_REQUEST_INTERVAL_MS;
+      const response = await fetch(url, {
+        headers: { accept: "text/html,application/xhtml+xml", "user-agent": SOURCE_USER_AGENT },
+        signal: AbortSignal.timeout(20000),
+      });
+      if (response.ok) return response.text();
+      await response.body?.cancel();
+      if (response.status !== 429) throw new Error(`iSquad returned ${response.status}`);
+      const delay = retryDelay(response.headers.get("retry-after"));
+      if (attempt > 0 || delay > MAX_SOURCE_RETRY_MS) {
+        sourceCooldownUntil = Date.now() + delay;
+        throw new Error("iSquad returned HTTP 429 after throttling");
+      }
+      nextSourceRequestAt = Date.now() + delay;
+    }
   });
-  if (!response.ok) throw new Error(`iSquad returned ${response.status}`);
-  return response.text();
+  sourceQueue = request.catch(() => {});
+  return request;
 }
 
 function parseClubTeams(html) {
@@ -284,10 +312,6 @@ function parseTeamFixtures(html, team) {
   return numberFixtures(fixtures);
 }
 
-function parseCalendar(html, team) {
-  return parseLeagueCalendar(html).flatMap((round) => round.fixtures.filter((fixture) => fixture.homeId === team.id || fixture.awayId === team.id));
-}
-
 export function parseLeagueCalendar(html) {
   const rows = [...html.matchAll(/<tr\b[^>]*>[\s\S]*?<\/tr>/gi)].map((match) => match[0]);
   const badgeUrls = parseTeamBadgeUrls(html);
@@ -461,20 +485,28 @@ function parseTournamentOptions(html) {
 }
 
 async function fetchTeamCalendar(team) {
-  // The federation separates some divisions into several groups. Discover the
-  // current groups, then select the calendar that actually contains this club.
-  const firstHtml = await fetchHtml(calendarUrlForTeam(team, ""));
-  const firstFixtures = parseCalendar(firstHtml, team);
-  const { selected, ids, label } = parseTournamentOptions(firstHtml);
-  if (firstFixtures.length) return { fixtures: firstFixtures, tournamentId: selected || team.tournament, rounds: parseLeagueCalendar(firstHtml), label };
-
-  const candidates = [...new Set([...ids, team.tournament].filter((id) => id && id !== selected))];
-  for (const tournament of candidates) {
-    const html = await fetchHtml(calendarUrlForTeam(team, tournament));
-    const fixtures = parseCalendar(html, team);
-    if (fixtures.length) return { fixtures, tournamentId: tournament, rounds: parseLeagueCalendar(html), label: parseTournamentOptions(html).label };
+  // Try the known group first. If the federation moves a team, discover the
+  // remaining groups without letting an unavailable group stop the search.
+  const pending = [...new Set([team.tournament, ""])];
+  const visited = new Set();
+  const errors = [];
+  while (pending.length) {
+    const tournament = pending.shift();
+    if (visited.has(tournament)) continue;
+    visited.add(tournament);
+    try {
+      const html = await fetchHtml(calendarUrlForTeam(team, tournament));
+      const { selected, ids, label } = parseTournamentOptions(html);
+      if (selected) visited.add(selected);
+      pending.push(...ids.filter((id) => !visited.has(id) && !pending.includes(id)));
+      const rounds = parseLeagueCalendar(html);
+      const fixtures = rounds.flatMap((round) => round.fixtures.filter((fixture) => fixture.homeId === team.id || fixture.awayId === team.id));
+      if (fixtures.length) return { fixtures, tournamentId: selected || tournament || team.tournament, rounds, label };
+    } catch (error) {
+      errors.push(error.message);
+    }
   }
-  return { fixtures: [], tournamentId: selected || team.tournament, rounds: [], label };
+  throw new Error(`No calendar for ${team.key}${errors.length ? ": " + [...new Set(errors)].join("; ") : ""}`);
 }
 
 async function fetchFormalActas(tournamentId) {
@@ -505,12 +537,17 @@ async function buildData() {
     const sourceRow = byId.get(team.id);
     const rosterHtml = rosterResult.status === "fulfilled" ? rosterResult.value : "";
     const roster = rosterHtml ? parseRoster(rosterHtml) : { players: [], guests: [] };
+    const teamFixtures = rosterHtml ? parseTeamFixtures(rosterHtml, team) : [];
+    if (scheduleResult.status === "rejected") console.warn(scheduleResult.reason.message);
     const schedule = scheduleResult.status === "fulfilled" ? scheduleResult.value : { fixtures: [], tournamentId: "" };
     const calendarFixtures = schedule.fixtures;
     const [standingsResult, formalActas] = await Promise.all([
       schedule.tournamentId ? fetchHtml(classificationUrlForTeam(team, schedule.tournamentId)).catch(() => "") : Promise.resolve(""),
       fetchFormalActas(schedule.tournamentId),
     ]);
+    for (const fixture of teamFixtures) {
+      if (fixture.actaUrl && !formalActas.has(fixtureKey(fixture))) formalActas.set(fixtureKey(fixture), fixture.actaUrl);
+    }
     const scorersHtml = scorersResult.status === "fulfilled" ? scorersResult.value : "";
     const scorers = scorersHtml ? parseTeamScorers(scorersHtml, team) : [];
     return {
@@ -528,8 +565,9 @@ async function buildData() {
       scorersAvailable: hasScorersPage && /tabla_goleadores/i.test(scorersHtml),
       topScorers: parseTopScorers(scorers),
       scorersUrl: hasScorersPage ? statisticsUrlForTeam(team) : "",
-      fixtures: addFormalActas(rosterHtml ? parseTeamFixtures(rosterHtml, team) : [], formalActas),
-      calendarFixtures: addFormalActas(calendarFixtures, formalActas),
+      // Keep the official round for postponed fixtures, using the team page
+      // only as a source for matching acta links and as a calendar fallback.
+      fixtures: addFormalActas(calendarFixtures.length ? calendarFixtures : teamFixtures, formalActas),
       league: {
         tournamentId: schedule.tournamentId,
         label: schedule.label || "",
@@ -540,13 +578,6 @@ async function buildData() {
       scheduleAvailable: scheduleResult.status === "fulfilled",
     };
   });
-
-  for (const team of teams) {
-    // The official round must stay attached to a postponed match even when
-    // its new date falls after later rounds. The team page numbers by date.
-    if (team.calendarFixtures.length) team.fixtures = team.calendarFixtures;
-    delete team.calendarFixtures;
-  }
 
   return {
     club: "Amics Handbol La Canonja",
