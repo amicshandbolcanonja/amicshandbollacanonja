@@ -42,7 +42,7 @@
     .shell { width: min(1180px, calc(100% - 48px)); margin-inline: auto; }
     .topbar { position: sticky; top: 0; z-index: 10; border-bottom: 1px solid var(--line); background: rgba(244,242,235,.96); backdrop-filter: blur(12px); }
     .topbar-inner { position: relative; display: flex; align-items: center; justify-content: space-between; min-height: 81px; }
-    #inici, #club, #equips, #actualitat, #visita, #jugadors, .schedules, .schedule-panel { scroll-margin-top: 98px; }
+    #inici, #club, #equips, #actualitat, #visita, #jugadors, #classificacio, .schedules, .schedule-panel { scroll-margin-top: 98px; }
     .brand { display: inline-flex; align-items: center; gap: 11px; text-decoration: none; }
     .brand-mark { display: grid; width: 48px; height: 48px; flex: 0 0 48px; place-items: center; overflow: hidden; padding: 3px; border: 1px solid var(--line); border-radius: 50%; background: var(--white); }
     .brand-mark img { display: block; width: 100%; height: 100%; object-fit: contain; }
@@ -289,15 +289,15 @@
       *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
     }
 
-    .schedule-toolbar { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 20px; margin-bottom: 16px; }
+    .schedule-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; margin-bottom: 16px; }
     .schedule-toolbar p { margin: 7px 0 0; color: #ffe1ac; font-size: 12px; line-height: 1.5; }
     .schedule-toolbar p:empty { margin: 0; }
     .schedule-overview { min-width: 0; }
     .schedule-overview h2 { margin: 0; font-size: clamp(23px, 3vw, 34px); letter-spacing: -.045em; }
     .schedule-source { display: inline-flex; min-height: 36px; width: fit-content; align-items: center; color: var(--lilac); font-size: 12px; font-weight: 690; text-underline-offset: 4px; }
-    .schedule-team-picker { display: grid; min-width: 0; width: min(100%, 240px); flex: 0 0 auto; gap: 5px; color: var(--lilac); font-size: 12px; font-weight: 750; }
-    .schedule-team-picker[hidden] { display: none; }
-    .schedule-team-picker select { width: 100%; min-height: 44px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--white); color: var(--ink); font: inherit; cursor: pointer; }
+    .team-directory-link { display: inline-flex; min-height: 44px; flex: 0 0 auto; align-items: center; gap: 7px; padding: 0 12px; border: 1px solid rgba(255,255,255,.2); border-radius: 9px; color: var(--lilac); font-size: 12px; font-weight: 750; text-decoration: none; }
+    .team-directory-link:hover { background: rgba(255,255,255,.08); color: var(--white); }
+    .team-directory-link:focus-visible { outline-color: var(--lilac); }
     .calendar-controls { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin: 0 0 16px; }
     .league-pdf-menu { position: relative; margin-left: auto; flex: 0 0 auto; }
     .league-pdf-toggle { display: flex; min-height: 36px; align-items: center; gap: 7px; padding: 7px 11px; border: 1px solid transparent; border-radius: 99px; color: var(--muted); font-size: 11px; font-weight: 750; cursor: pointer; list-style: none; }
@@ -318,7 +318,7 @@
       .league-pdf-menu { position: static; }
       .league-pdf-popover { width: 100%; max-width: none; }
     }
-    .team-panels { display: grid; gap: 18px; }
+    .team-panels { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
     .roster-heading {
       display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
       gap: 9px 20px; margin-bottom: 20px; padding: clamp(16px, 2.8vw, 30px);
@@ -393,10 +393,8 @@
       .values { gap: 7px; margin-top: 18px; }
       .pill { padding: 8px 11px; font-size: 9px; }
 
-      #inici, #club, #equips, #actualitat, #visita, #jugadors, .schedules, .schedule-panel { scroll-margin-top: 88px; }
+      #inici, #club, #equips, #actualitat, #visita, #jugadors, #classificacio, .schedules, .schedule-panel { scroll-margin-top: 88px; }
       .schedule-toolbar { gap: 8px 12px; }
-      .schedule-overview { flex: 1 0 100%; }
-      .schedule-team-picker { width: 100%; }
       .schedule-panel { padding: 16px 13px; border-radius: 16px; }
       .schedule-heading { margin-bottom: 15px; }
       .schedule-heading h3 { font-size: clamp(23px, 7vw, 30px); line-height: 1.05; overflow-wrap: anywhere; }
@@ -467,19 +465,53 @@
     .team-favorite-toggle { display: inline-flex; min-height: 42px; align-items: center; justify-content: center; gap: 7px; padding: 0 13px; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--ink); font-size: 11px; font-weight: 850; cursor: pointer; }
     .team-favorite-toggle:hover, .team-favorite-toggle[aria-pressed="true"] { border-color: var(--violet); background: #f0efff; color: var(--blue); }
     .team-favorite-toggle-icon { color: var(--violet); font-size: 16px; line-height: 1; }
-    .standings-source { margin: 0 0 11px; color: var(--muted); font-size: 10px; }
-    .standings-source a { color: var(--blue); text-underline-offset: 3px; }
-    .standings-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--white); overscroll-behavior-inline: contain; scrollbar-color: var(--violet) #eeeaff; }
-    .standings-table { width: 100%; min-width: 570px; border-collapse: collapse; color: var(--ink); font-size: 10px; font-variant-numeric: tabular-nums; text-align: right; }
-    .standings-table th, .standings-table td { padding: 10px 9px; border-bottom: 1px solid rgba(25,24,54,.08); white-space: nowrap; }
-    .standings-table thead th { position: sticky; top: 0; background: #f0efff; color: var(--muted); font-size: 9px; font-weight: 850; letter-spacing: .04em; text-transform: uppercase; }
-    .standings-table th:first-child, .standings-table td:first-child { width: 36px; text-align: center; }
-    .standings-table th:nth-child(2), .standings-table td:nth-child(2) { min-width: 180px; text-align: left; }
-    .standings-table tbody th { font-weight: 750; }
-    .standings-table tbody tr:last-child th, .standings-table tbody tr:last-child td { border-bottom: 0; }
-    .standings-table tbody tr.is-club { background: #f0efff; color: var(--blue); }
-    .standings-table tbody tr.is-club th { font-weight: 900; }
-    .standings-mobile-note { display: none; }
+    .standings-view { min-width: 0; }
+    .standings-spotlight { position: relative; isolation: isolate; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); align-items: center; gap: 20px 32px; overflow: hidden; padding: clamp(18px, 4vw, 38px); border-radius: 17px; background: linear-gradient(112deg, #24224e, #35358e 72%, #463692); color: #fff; }
+    .standings-spotlight::before { position: absolute; z-index: -1; inset: -30% -5% -35% auto; width: 38%; border: 1px solid rgba(255,255,255,.18); border-radius: 50%; content: ""; }
+    .standings-rank { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 15px; align-items: center; }
+    .standings-rank h4 { grid-column: 1 / -1; margin: 0; color: #e2dcff; font-size: 12px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+    .standings-rank-value { font-size: clamp(53px, 8vw, 91px); font-weight: 850; letter-spacing: -.09em; line-height: .92; font-variant-numeric: tabular-nums; }
+    .standings-rank-context { align-self: end; padding-bottom: 5px; color: #e2dcff; font-size: 15px; font-weight: 680; }
+    .standings-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; margin: 0; }
+    .standings-metric { display: flex; min-width: 0; min-height: 72px; flex-direction: column-reverse; justify-content: center; gap: 4px; padding: 8px 9px; border: 1px solid rgba(255,255,255,.24); border-radius: 9px; background: rgba(255,255,255,.1); text-align: center; }
+    .standings-metric dt { color: #f0edff; font-size: 11px; font-weight: 700; line-height: 1.3; }
+    .standings-metric dd { margin: 0; font-size: clamp(19px, 3.5vw, 32px); font-weight: 850; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+    .standings-record { display: flex; flex-wrap: wrap; gap: 7px 15px; margin: 9px 0 0; padding: 0; list-style: none; }
+    .standings-record li { display: flex; align-items: center; gap: 4px; color: #f4f0ff; font-size: 11px; }
+    .standings-record-bar { display: flex; height: 5px; gap: 2px; overflow: hidden; margin-top: 13px; border-radius: 6px; background: rgba(255,255,255,.13); }
+    .standings-record-bar span, .standings-record li::before { background: var(--result-color); }
+    .standings-record li::before { width: 7px; height: 7px; margin-right: 2px; border-radius: 50%; content: ""; }
+    [data-record="wins"] { --result-color: #b9aaff; }
+    [data-record="draws"] { --result-color: #b7c8e9; }
+    [data-record="losses"] { --result-color: #ffc4ce; }
+    .standings-heading { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 4px 12px; margin: 0 0 10px; }
+    .standings-spotlight + .standings-heading { margin-top: 22px; }
+    .standings-heading h4 { margin: 0; font-size: clamp(20px, 3vw, 26px); font-weight: 850; letter-spacing: -.04em; }
+    .standings-source { display: inline-flex; align-items: center; min-height: 36px; color: var(--blue); font-size: 12px; font-weight: 700; text-underline-offset: 4px; }
+    .standings-detail-toggle { display: none; }
+    .standings-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 13px; overscroll-behavior-inline: contain; scrollbar-color: var(--violet) #eeeaff; }
+    .standings-table { width: 100%; min-width: 625px; border-collapse: collapse; color: var(--ink); font-size: 13px; font-variant-numeric: tabular-nums; text-align: center; }
+    .standings-table th, .standings-table td { padding: 8px; border-bottom: 1px solid #e9e6ee; }
+    .standings-table thead th { padding-block: 12px; background: #f1eff8; color: #565170; font-size: 10px; font-weight: 850; text-transform: uppercase; white-space: nowrap; }
+    .standings-table thead th:nth-child(2), .standings-table tbody th { text-align: left; }
+    .standings-table tbody th { font-weight: 730; }
+    .standings-table tbody tr:nth-child(even) { background: #faf9fd; }
+    .standings-table tbody tr:last-child > * { border-bottom: 0; }
+    .standings-table tbody tr.is-club { background: #eeebff; }
+    .standings-table .is-club td:first-child { box-shadow: inset 3px 0 var(--blue); }
+    .standings-table .is-club th { color: #2e2b89; font-weight: 850; }
+    .standings-rank-chip, .standings-points { display: inline-grid; min-width: 32px; min-height: 28px; place-items: center; padding: 2px 6px; border-radius: 6px; font-weight: 800; }
+    .standings-rank-chip { background: #f3f1f7; color: #4f4a68; }
+    .standings-table [data-leader] .standings-rank-chip { background: #ded8ff; color: #2e2b89; }
+    .standings-points { min-width: 38px; background: #eeebf9; color: var(--ink); }
+    .standings-table .is-club .standings-points { background: var(--blue); color: white; }
+    .standings-team { display: flex; min-width: 0; align-items: center; gap: 8px; line-height: 1.3; }
+    .standings-team-name { min-width: 0; overflow-wrap: anywhere; }
+    .standings-movement { display: inline-block; margin-inline-start: 5px; font-size: 10px; font-weight: 750; white-space: nowrap; }
+    .standings-badge { display: grid; width: 28px; height: 28px; flex: 0 0 28px; place-items: center; border-radius: 7px; background: #f0edf8; color: #534884; font-size: 10px; font-weight: 850; }
+    .standings-badge img { display: block; width: 25px; height: 25px; }
+    .standings-table [data-difference="positive"] { color: #216651; font-weight: 750; }
+    .standings-table [data-difference="negative"] { color: #922e4a; font-weight: 750; }
     .standings-unavailable { margin: 0; padding: 16px; border: 1px dashed rgba(25,24,54,.2); border-radius: 12px; color: var(--muted); font-size: 12px; line-height: 1.6; }
     .standings-unavailable a { color: var(--blue); font-weight: 800; text-underline-offset: 3px; }
     .schedule-views { display: flex; gap: 4px; margin: 0 0 22px; border-bottom: 1px solid var(--line); }
@@ -555,26 +587,24 @@
       .team-filter-button { min-height: 42px; padding-inline: 16px; font-size: 12px; }
       .team-empty { margin-bottom: 14px; padding: 15px; font-size: 12px; }
       .team-favorite-toggle { min-height: 44px; padding-inline: 12px; }
-      .standings-mobile-note { display: block; margin: 0 0 10px; color: var(--muted); font-size: 9px; line-height: 1.45; }
-      .standings-scroll { margin-inline: 0; overflow: visible; }
-      .standings-table { display: block; width: 100%; min-width: 0; font-size: 10px; text-align: center; }
-      .standings-table thead { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-      .standings-table tbody { display: block; }
-      .standings-table tbody tr { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px 4px; padding: 11px 8px; border-bottom: 1px solid rgba(25,24,54,.08); }
-      .standings-table th, .standings-table td { min-width: 0; padding: 0; border: 0; white-space: normal; }
-      .standings-table th:first-child, .standings-table td:first-child { width: auto; text-align: center; }
-      .standings-table th:nth-child(2), .standings-table td:nth-child(2) { min-width: 0; text-align: left; }
-      .standings-table tbody td:first-child { grid-column: 1; grid-row: 1; align-self: center; color: var(--blue); font-size: 12px; font-weight: 900; }
-      .standings-table tbody th:nth-child(2) { grid-column: 2 / 4; grid-row: 1; align-self: center; overflow-wrap: anywhere; font-size: 11px; }
-      .standings-table tbody td:nth-child(3) { grid-column: 1; grid-row: 2; }
-      .standings-table tbody td:nth-child(4) { grid-column: 2; grid-row: 2; }
-      .standings-table tbody td:nth-child(9) { grid-column: 3 / 5; grid-row: 2; }
-      .standings-table tbody td:last-child { display: flex; grid-column: 4; grid-row: 1; align-self: center; flex-direction: column; align-items: flex-end; justify-content: center; color: var(--blue); font-size: 12px; font-weight: 900; }
-      .standings-table tbody td:nth-child(n+3):nth-child(-n+9) { display: flex; flex-direction: column; align-items: center; font-size: 10px; font-weight: 750; }
-      .standings-table tbody td:nth-child(n+5):nth-child(-n+8) { display: none; }
-      .standings-table tbody td:nth-child(n+3):nth-child(-n+9)::before, .standings-table tbody td:last-child::before { content: attr(data-label); margin-bottom: 2px; color: var(--muted); font-size: 8px; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; }
-      .standings-table tbody tr:last-child { border-bottom: 0; }
-      .standings-table tbody tr.is-club { border-radius: 8px; }
+    }
+    @media (max-width: 760px) {
+      .standings-spotlight { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+      .standings-metric { min-height: 61px; padding-inline: 4px; }
+      .standings-metric dd { font-size: 22px; }
+      .standings-detail-toggle { display: inline-flex; align-items: center; min-height: 40px; margin-inline-start: auto; padding: 0 10px; border: 1px solid var(--line); border-radius: 7px; background: var(--white); color: var(--blue); font: inherit; font-weight: 750; font-size: 11px; cursor: pointer; }
+      .standings-detail-toggle[aria-pressed="true"] { background: #eeebff; }
+      .standings-table { font-size: 11px; }
+      .standings-table th, .standings-table td { padding: 7px 4px; }
+      .standings-table .standings-rank-chip, .standings-table .standings-points { min-width: 24px; min-height: 24px; padding-inline: 4px; }
+      .standings-view:not([data-full]) .standings-table { min-width: 0; }
+      .standings-view:not([data-full]) .standings-extra { display: none; }
+      .standings-badge { width: 21px; height: 21px; flex-basis: 21px; font-size: 8px; }
+      .standings-badge img { width: 18px; height: 18px; }
+    }
+    @media (max-width: 380px) {
+      .standings-table .standings-team { gap: 5px; }
+      .standings-table tr:not(.is-club) .standings-badge { display: none; }
     }
   </style>
 </head>
@@ -661,14 +691,11 @@
       </div>
       <div class="shell schedules" id="partits">
         <div class="schedule-toolbar" id="jugadors">
-          <div class="schedule-overview">
+          <div class="schedule-overview" id="classificacio">
             <h2 id="schedule-title" tabindex="-1" data-ca="Calendaris i resultats" data-es="Calendarios y resultados">Calendaris i resultats</h2>
             <p id="calendar-status" role="status"></p>
           </div>
-          <label class="schedule-team-picker" id="schedule-team-picker" hidden>
-            <span data-ca="Canviar d’equip" data-es="Cambiar de equipo">Canviar d’equip</span>
-            <select id="schedule-team-select"></select>
-          </label>
+          <a class="team-directory-link" href="#equips" id="team-directory-link"><span data-ca="Veure equips" data-es="Ver equipos">Veure equips</span><span aria-hidden="true">↑</span></a>
         </div>
         <div class="team-panels" id="team-panels">
           <div class="calendar-pending" role="status"><strong data-ca="Carregant equips…" data-es="Cargando equipos…">Carregant equips…</strong></div>
@@ -733,8 +760,7 @@
       const favoriteCountNode = document.getElementById("team-favorite-count");
       const teamEmptyNode = document.getElementById("team-empty");
       const panelsNode = document.getElementById("team-panels");
-      const teamPicker = document.getElementById("schedule-team-picker");
-      const teamSelect = document.getElementById("schedule-team-select");
+      const teamDirectoryLink = document.getElementById("team-directory-link");
       const officialScheduleLink = document.getElementById("official-schedule-link");
       const officialClubUrl = officialScheduleLink.href;
       const scheduleDataUrl = "/api/data";
@@ -767,7 +793,10 @@
       let favoriteTeams = readSavedFavorites();
       let teamFilter = readSavedValue("ahc-team-filter") === "favorites" ? "favorites" : "all";
       const selectedRounds = {};
-      let scheduleView = location.hash === "#jugadors" ? "roster" : "round";
+      const scheduleAnchors = { round: "#partits", roster: "#jugadors", standings: "#classificacio" };
+      const viewFromHash = (hash) => Object.keys(scheduleAnchors).find((view) => scheduleAnchors[view] === hash);
+      let scheduleView = viewFromHash(location.hash) || "round";
+      let standingsExpanded = false;
       let fixtureFilter = "all";
       let lastLoad = 0;
       let loading = false;
@@ -809,13 +838,13 @@
         filterLabel: "Filtrar equips", noFavorites: "Encara no tens equips favorits. Mostra tots els equips i fixa els que vols seguir.",
         standings: "Classificació", team: "Equip", position: "Pos.", playedShort: "PJ", winsShort: "PG", drawsShort: "PE", lossesShort: "PP",
         goalsForShort: "GF", goalsAgainstShort: "GC", differenceShort: "DG", pointsShort: "Pts", noStandings: "La classificació encara no està disponible.",
-        currentStanding: (position, points) => "Posició " + position + " · " + points + " pts", viewOfficial: "Veure classificació oficial"
+        viewOfficial: "Veure classificació oficial"
       } : {
         all: "Todos", favorites: "Favoritos", favorite: "Favorito", addFavorite: "Fijar equipo", removeFavorite: "Quitar de favoritos",
         filterLabel: "Filtrar equipos", noFavorites: "Todavía no tienes equipos favoritos. Muestra todos los equipos y fija los que quieres seguir.",
         standings: "Clasificación", team: "Equipo", position: "Pos.", playedShort: "PJ", winsShort: "PG", drawsShort: "PE", lossesShort: "PP",
         goalsForShort: "GF", goalsAgainstShort: "GC", differenceShort: "DG", pointsShort: "Pts", noStandings: "La clasificación todavía no está disponible.",
-        currentStanding: (position, points) => "Posición " + position + " · " + points + " pts", viewOfficial: "Ver clasificación oficial"
+        viewOfficial: "Ver clasificación oficial"
       };
 
       function updateStaticLanguage() {
@@ -1029,30 +1058,35 @@
         }
       }
 
+      function competitionName(value) {
+        const label = String(value ?? "");
+        if (label !== label.toLocaleUpperCase(language)) return label;
+        return label.replace(/\p{L}+/gu, (word, offset) => {
+          if (word.length === 1 || /^(?:AEH?|BM|CEH?|CF|CH|EHC|FC|HC|UEH?)$/.test(word)) return word;
+          if (offset > 0 && /^(?:DA|DAS|DE|DEL|DELS|DO|DOS|EL|ELS|EN|I|LA|LAS|LES|LOS|Y)$/.test(word)) return word.toLocaleLowerCase(language);
+          return word[0] + word.slice(1).toLocaleLowerCase(language);
+        });
+      }
+
+      function competitionInitials(name) {
+        const parts = name.match(/\p{L}{2,}/gu) || [];
+        const names = parts.filter((word) => !/^(?:ae|bm|ce|ceh|cf|ch|club|de|del|els?|handbol|hc|las?|les|los|ue)$/i.test(word));
+        const initials = names.length > 1 ? names[0][0] + names[1][0] : (names[0] || parts[0] || "").slice(0, 2);
+        return initials.toLocaleUpperCase(language);
+      }
+
       function fixtureMarkup(team, fixture, display = "season", featureLabel = "") {
         const ownHome = fixture.homeId === team.id;
         const ownAway = fixture.awayId === team.id;
         const league = display === "league";
-        const matchLabel = (value) => {
-          const label = String(value ?? "");
-          if (label !== label.toLocaleUpperCase(language)) return label;
-          return label.replace(/\p{L}+/gu, (word, offset) => {
-            if (word.length === 1 || /^(?:AEH?|BM|CEH?|CF|CH|EHC|FC|HC|UEH?)$/.test(word)) return word;
-            if (offset > 0 && /^(?:DA|DAS|DE|DEL|DELS|DO|DOS|EL|ELS|EN|I|LA|LAS|LES|LOS|Y)$/.test(word)) return word.toLocaleLowerCase(language);
-            return word[0] + word.slice(1).toLocaleLowerCase(language);
-          });
-        };
-        const homeName = ownHome ? "Amics H.C." : matchLabel(fixture.homeName);
-        const awayName = ownAway ? "Amics H.C." : matchLabel(fixture.awayName);
+        const homeName = ownHome ? "Amics H.C." : competitionName(fixture.homeName);
+        const awayName = ownAway ? "Amics H.C." : competitionName(fixture.awayName);
         const clubBadgeUrl = "./images/escut-128.png";
         const badgeMarkup = (url, name) => {
-          const words = name.match(/\p{L}{2,}/gu) || [];
-          const names = words.filter((word) => !/^(?:ae|bm|ce|ceh|cf|ch|club|de|del|els?|handbol|hc|las?|les|los|ue)$/i.test(word));
-          const initials = names.length > 1 ? names[0][0] + names[1][0] : (names[0] || words[0] || "").slice(0, 2);
           const badge = url && !/\/sinescudo\./i.test(url)
             ? '<img class="fixture-team-badge" src="' + escapeHtml(url) + '" alt="" loading="lazy" decoding="async" onerror="this.remove()">'
             : "";
-          return '<span class="fixture-team-mark" aria-hidden="true">' + escapeHtml(initials.toLocaleUpperCase(language)) + badge + '</span>';
+          return '<span class="fixture-team-mark" aria-hidden="true">' + escapeHtml(competitionInitials(name)) + badge + '</span>';
         };
         const homeBadgeUrl = ownHome ? clubBadgeUrl : fixture.homeBadgeUrl;
         const awayBadgeUrl = ownAway ? clubBadgeUrl : fixture.awayBadgeUrl;
@@ -1063,7 +1097,7 @@
         const venueName = String(fixture.venue ?? "").trim();
         const venuePin = league ? '<span class="fixture-venue-pin" aria-hidden="true"></span>' : '<span aria-hidden="true">📍</span>';
         const venue = venueName
-          ? '<a class="fixture-venue" href="https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(venueName) + '" target="_blank" rel="noopener noreferrer" aria-label="' + escapeHtml((language === "ca" ? "Obrir a Google Maps: " : "Abrir en Google Maps: ") + venueName) + '">' + venuePin + '<span class="fixture-venue-name">' + escapeHtml(matchLabel(venueName)) + '</span></a>'
+          ? '<a class="fixture-venue" href="https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(venueName) + '" target="_blank" rel="noopener noreferrer" aria-label="' + escapeHtml((language === "ca" ? "Obrir a Google Maps: " : "Abrir en Google Maps: ") + venueName) + '">' + venuePin + '<span class="fixture-venue-name">' + escapeHtml(competitionName(venueName)) + '</span></a>'
           : "";
         const actaLabel = language === "ca" ? "Descarregar acta" : "Descargar acta";
         const acta = scored && fixture.actaUrl
@@ -1098,12 +1132,8 @@
         teamFilterButtons.forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.teamFilter === teamFilter)));
         teamEmptyNode.hidden = visibleTeams.length > 0;
         teamEmptyNode.textContent = visibleTeams.length ? "" : labels.noFavorites;
-        teamPicker.hidden = false;
-        teamSelect.innerHTML = '<option value="" disabled>' + (language === "ca" ? "Tria un equip" : "Elige un equipo") + '</option>' +
-          siteData.teams.map((team) => '<option value="' + escapeHtml(team.key) + '">' + escapeHtml(language === "ca" ? team.nameCa : team.nameEs) + '</option>').join("");
         if (!visibleTeams.length) {
           tabsNode.innerHTML = "";
-          teamSelect.value = "";
           return;
         }
         if (!visibleTeams.some((team) => team.key === activeTeamKey)) {
@@ -1111,7 +1141,6 @@
           fixtureFilter = "all";
           saveActiveTeam();
         }
-        teamSelect.value = activeTeamKey;
         tabsNode.innerHTML = visibleTeams.map((team) => {
           const selected = team.key === activeTeamKey;
           const title = language === "ca" ? team.nameCa : team.nameEs;
@@ -1136,24 +1165,105 @@
         });
       }
 
+      function standingValue(value) {
+        return value === "" || value == null ? "—" : String(value);
+      }
+
+      function signedGoalDifference(value) {
+        if (value > 0) return "+" + Math.abs(value);
+        if (value < 0) return "−" + Math.abs(value);
+        return standingValue(value);
+      }
+
+      function renderStandingsSpotlight(entry, teamCount) {
+        const ca = language === "ca";
+        const metrics = [
+          [ca ? "Punts" : "Puntos", standingValue(entry.points)],
+          [ca ? "Partits jugats" : "Partidos jugados", standingValue(entry.played)],
+          [ca ? "Dif. de gols" : "Dif. de goles", signedGoalDifference(entry.goalDifference)],
+        ];
+        const record = [
+          ["wins", ca ? "Victòries" : "Victorias"],
+          ["draws", ca ? "Empats" : "Empates"],
+          ["losses", ca ? "Derrotes" : "Derrotas"],
+        ].map(([key, label]) => ({ key, label, count: entry[key] }));
+        const recordBar = record.every(({ count }) => Number.isSafeInteger(count) && count >= 0) && record.some(({ count }) => count > 0)
+          ? '<div class="standings-record-bar" aria-hidden="true">' + record.filter(({ count }) => count > 0)
+            .map(({ key, count }) => '<span data-record="' + key + '" style="flex:' + count + ' 1 0"></span>').join("") +
+            '</div><ul class="standings-record" role="list">' + record.map(({ key, label, count }) =>
+              '<li data-record="' + key + '">' + label + ' <strong>' + count + '</strong></li>').join("") + '</ul>'
+          : "";
+        return '<div class="standings-spotlight"><div class="standings-rank"><h4>' + (ca ? "Posició de l’Amics" : "Posición del Amics") + '</h4>' +
+          '<strong class="standings-rank-value">' + escapeHtml(standingValue(entry.position)) + '</strong><span class="standings-rank-context">/ ' +
+          teamCount + (ca ? ' equips' : ' equipos') + '</span></div><div><dl class="standings-metrics">' +
+          metrics.map(([label, value]) => '<div class="standings-metric"><dt>' + label + '</dt><dd>' + escapeHtml(value) + '</dd></div>').join("") +
+          '</dl>' + recordBar + '</div></div>';
+      }
+
       function renderStandings(team) {
+        const ca = language === "ca";
         const labels = teamWords();
         const standings = team.standings || [];
-        const clubStanding = standings.find((entry) => entry.isClub);
-        const summary = clubStanding ? labels.currentStanding(clubStanding.position, clubStanding.points) : "";
         const sourceUrl = federationUrl(team, "tabla") || team.standingsUrl || team.teamUrl || "";
-        const sourceLink = sourceUrl && standings.length
-          ? '<p class="standings-source"><a href="' + escapeHtml(sourceUrl) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(labels.viewOfficial) + ' ↗</a></p>'
-          : "";
-        const mobileNote = language === "ca"
-          ? '<p class="standings-mobile-note">Vista resumida: PJ, PG, DG i PTS. Consulta la classificació oficial per veure la resta.</p>'
-          : '<p class="standings-mobile-note">Vista resumida: PJ, PG, DG y PTS. Consulta la clasificación oficial para ver el resto.</p>';
-        const table = standings.length
-          ? '<div class="standings-scroll" tabindex="0" aria-label="' + escapeHtml(labels.standings) + '"><table class="standings-table"><thead><tr>' +
-            '<th scope="col">' + escapeHtml(labels.position) + '</th><th scope="col">' + escapeHtml(labels.team) + '</th><th scope="col">' + escapeHtml(labels.playedShort) + '</th><th scope="col">' + escapeHtml(labels.winsShort) + '</th><th scope="col">' + escapeHtml(labels.drawsShort) + '</th><th scope="col">' + escapeHtml(labels.lossesShort) + '</th><th scope="col">' + escapeHtml(labels.goalsForShort) + '</th><th scope="col">' + escapeHtml(labels.goalsAgainstShort) + '</th><th scope="col">' + escapeHtml(labels.differenceShort) + '</th><th scope="col">' + escapeHtml(labels.pointsShort) + '</th>' +
-            '</tr></thead><tbody>' + standings.map((entry) => '<tr' + (entry.isClub ? ' class="is-club" aria-current="true"' : '') + '><td>' + escapeHtml(entry.position) + '</td><th scope="row">' + escapeHtml(entry.name) + '</th><td data-label="' + escapeHtml(labels.playedShort) + '">' + escapeHtml(entry.played) + '</td><td data-label="' + escapeHtml(labels.winsShort) + '">' + escapeHtml(entry.wins) + '</td><td data-label="' + escapeHtml(labels.drawsShort) + '">' + escapeHtml(entry.draws) + '</td><td data-label="' + escapeHtml(labels.lossesShort) + '">' + escapeHtml(entry.losses) + '</td><td data-label="' + escapeHtml(labels.goalsForShort) + '">' + escapeHtml(entry.goalsFor) + '</td><td data-label="' + escapeHtml(labels.goalsAgainstShort) + '">' + escapeHtml(entry.goalsAgainst) + '</td><td data-label="' + escapeHtml(labels.differenceShort) + '">' + escapeHtml(entry.goalDifference) + '</td><td data-label="' + escapeHtml(labels.pointsShort) + '"><strong>' + escapeHtml(entry.points) + '</strong></td></tr>').join("") + '</tbody></table></div>'
-          : '<p class="standings-unavailable">' + escapeHtml(labels.noStandings) + (sourceUrl ? ' <a href="' + escapeHtml(sourceUrl) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(labels.viewOfficial) + ' ↗</a>' : "") + '</p>';
-        return '<div class="round-title"><h4>' + escapeHtml(labels.standings) + '</h4>' + (summary ? '<p>' + escapeHtml(summary) + '</p>' : "") + '</div>' + sourceLink + (standings.length ? mobileNote : "") + table;
+        const sourceLink = sourceUrl ? '<a class="standings-source" href="' + escapeHtml(sourceUrl) + '" target="_blank" rel="noopener noreferrer">' +
+          escapeHtml(labels.viewOfficial) + ' ↗</a>' : "";
+        if (!standings.length) {
+          return '<p class="standings-unavailable">' + escapeHtml(labels.noStandings) + '</p>' + sourceLink;
+        }
+        const columns = [
+          ["played", labels.playedShort, ca ? "Partits jugats" : "Partidos jugados"],
+          ["wins", labels.winsShort, ca ? "Partits guanyats" : "Partidos ganados", true],
+          ["draws", labels.drawsShort, ca ? "Partits empatats" : "Partidos empatados", true],
+          ["losses", labels.lossesShort, ca ? "Partits perduts" : "Partidos perdidos", true],
+          ["goalsFor", labels.goalsForShort, ca ? "Gols a favor" : "Goles a favor", true],
+          ["goalsAgainst", labels.goalsAgainstShort, ca ? "Gols en contra" : "Goles en contra", true],
+          ["goalDifference", labels.differenceShort, ca ? "Diferència de gols" : "Diferencia de goles"],
+          ["points", labels.pointsShort, ca ? "Punts" : "Puntos"],
+        ];
+        const headings = columns.map(([, short, label, extra]) => '<th scope="col"' + (extra ? ' class="standings-extra"' : '') +
+          ' aria-label="' + escapeHtml(label) + '" title="' + escapeHtml(label) + '">' + escapeHtml(short) + '</th>').join("");
+        const knownNames = new Set([
+          team.clubLabel,
+          ...[...(team.fixtures || []), ...(team.league?.rounds || []).flatMap((round) => round.fixtures || [])]
+            .flatMap((fixture) => [fixture.homeName, fixture.awayName]),
+        ].filter(Boolean).map(normalizePlayerName));
+        const rows = standings.map((entry) => {
+          const cells = columns.map(([key, , , extra]) => {
+            const value = entry[key];
+            if (key === "points") return '<td><strong class="standings-points">' + escapeHtml(standingValue(value)) + '</strong></td>';
+            if (key === "goalDifference") {
+              const sign = value > 0 ? "positive" : value < 0 ? "negative" : "neutral";
+              return '<td data-difference="' + sign + '">' + escapeHtml(signedGoalDifference(value)) + '</td>';
+            }
+            return '<td' + (extra ? ' class="standings-extra"' : '') + '>' + escapeHtml(standingValue(value)) + '</td>';
+          }).join("");
+          const prefix = String(entry.name ?? "").match(/^([+-]?\d+)\s+(.+)$/);
+          const movement = prefix && knownNames.has(normalizePlayerName(prefix[2])) && !knownNames.has(normalizePlayerName(entry.name))
+            ? Number(prefix[1]) : 0;
+          const name = competitionName(movement ? prefix[2] : entry.name);
+          const places = Math.abs(movement);
+          const change = movement ? '<span class="standings-movement" data-difference="' + (movement > 0 ? "positive" : "negative") +
+            '" role="img" aria-label="' + (movement > 0 ? (ca ? "Puja " : "Sube ") : (ca ? "Baixa " : "Baja ")) + places +
+            (places === 1 ? (ca ? " posició" : " posición") : (ca ? " posicions" : " posiciones")) + '">' +
+            (movement > 0 ? "↑" : "↓") + places + '</span>' : "";
+          const crest = entry.isClub
+            ? '<img src="./images/escut-128.png" width="25" height="25" loading="lazy" alt="">'
+            : escapeHtml(competitionInitials(name));
+          return '<tr' + (entry.isClub ? ' class="is-club" aria-current="true"' : '') + (entry.position === 1 ? ' data-leader' : '') +
+            '><td><span class="standings-rank-chip">' + escapeHtml(standingValue(entry.position)) + '</span></td><th scope="row"><div class="standings-team">' +
+            '<span class="standings-badge" aria-hidden="true">' + crest + '</span><span class="standings-team-name">' + escapeHtml(name) + change +
+            '</span></div></th>' + cells + '</tr>';
+        }).join("");
+        const clubStanding = standings.find((entry) => entry.isClub);
+        const tableId = "standings-table-" + escapeHtml(team.key);
+        const tableTitle = ca ? "Taula del grup" : "Tabla del grupo";
+        return '<section class="standings-view" aria-label="' + escapeHtml(labels.standings) + '"' + (standingsExpanded ? ' data-full' : '') + '>' +
+          (clubStanding ? renderStandingsSpotlight(clubStanding, standings.length) : "") +
+          '<div class="standings-heading"><h4>' + tableTitle + '</h4><button class="standings-detail-toggle" type="button" data-standings-detail' +
+          ' aria-pressed="' + standingsExpanded + '" aria-controls="' + tableId + '">' + (ca ? "Taula completa" : "Tabla completa") + '</button></div>' +
+          '<div class="standings-scroll" tabindex="0" role="region" aria-label="' + tableTitle + '"><table class="standings-table" id="' + tableId + '"><thead><tr>' +
+          '<th scope="col">' + escapeHtml(labels.position) + '</th><th scope="col">' + escapeHtml(labels.team) + '</th>' + headings +
+          '</tr></thead><tbody>' + rows + '</tbody></table></div>' + sourceLink + '</section>';
       }
 
       function toggleFavorite(teamKey) {
@@ -1162,7 +1272,7 @@
         saveFavoriteTeams();
         renderData();
         const nextFavorite = panelsNode.querySelector("[data-team-favorite]");
-        (nextFavorite || teamSelect).focus({ preventScroll: true });
+        (nextFavorite || teamDirectoryLink).focus({ preventScroll: true });
       }
 
       function federationUrl(team, view) {
@@ -1341,13 +1451,17 @@
       }
 
       function updateScheduleTitle() {
+        if (scheduleView === "standings") {
+          scheduleTitle.textContent = teamWords().standings;
+          return;
+        }
         scheduleTitle.textContent = scheduleView === "roster"
           ? (language === "ca" ? "Jugadors i jugadores" : "Jugadores y jugadoras")
           : scheduleTitle.dataset[language];
       }
 
       function selectViewFromAnchor(hash) {
-        const view = { "#jugadors": "roster", "#partits": "round" }[hash];
+        const view = viewFromHash(hash);
         if (!view || view === scheduleView) return;
         scheduleView = view;
         renderPanels();
@@ -1363,7 +1477,7 @@
         const previousControl = ["roundDirection", "fixtureFilter", "scheduleView"].find((key) => previousFocus?.dataset[key] !== undefined);
         const focusSelector = previousControl ?
           '[data-' + previousControl.replace(/[A-Z]/g, (letter) => "-" + letter.toLowerCase()) + '="' + CSS.escape(previousFocus.dataset[previousControl]) + '"]:not(:disabled)' :
-          ["[data-round-select]", "[data-team-favorite]", ".league-pdf-download", ".league-pdf-menu summary"].find((selector) => previousFocus?.matches(selector));
+          ["[data-round-select]", "[data-team-favorite]", "[data-standings-detail]", ".league-pdf-download", ".league-pdf-menu summary"].find((selector) => previousFocus?.matches(selector));
         const views = [
           ["round", "Jornada", renderMatchday], ["roster", language === "ca" ? "Jugadors" : "Jugadores", renderRoster],
           ["season", words().calendar, renderSeasonCalendar], ["standings", teamWords().standings, renderStandings],
@@ -1432,13 +1546,13 @@
         officialScheduleLink.href = resultUrl || officialClubUrl;
       }
 
-      function selectTeam(key, moveFocus = false, scroll = true) {
+      function selectTeam(key, moveFocus = false) {
         if (activeTeamKey !== key) fixtureFilter = "all";
         activeTeamKey = key;
         saveActiveTeam();
         renderData();
         if (moveFocus) tabsNode.querySelector('[data-team-tab="' + CSS.escape(key) + '"]')?.focus();
-        else if (scroll) {
+        else {
           scheduleTitle.focus({ preventScroll: true });
           document.getElementById("partits").scrollIntoView({ behavior: reducedMotion.matches ? "auto" : "smooth", block: "start" });
         }
@@ -1461,7 +1575,7 @@
             const firstLoad = !siteData;
             siteData = nextData;
             renderData();
-            if (firstLoad && ["#equips", "#partits", "#jugadors"].includes(location.hash)) {
+            if (firstLoad && (location.hash === "#equips" || viewFromHash(location.hash))) {
               document.getElementById(location.hash.slice(1)).scrollIntoView({ block: "start", behavior: "instant" });
             }
           }
@@ -1488,15 +1602,6 @@
         try { localStorage.setItem("ahc-team-filter", teamFilter); } catch {}
         renderData();
       }));
-      teamSelect.addEventListener("change", () => {
-        const key = teamSelect.value;
-        if (!siteData?.teams.some((team) => team.key === key)) return;
-        if (teamFilter === "favorites" && !favoriteTeams.has(key)) {
-          teamFilter = "all";
-          try { localStorage.setItem("ahc-team-filter", teamFilter); } catch {}
-        }
-        selectTeam(key, false, false);
-      });
       panelsNode.addEventListener("click", (event) => {
         const button = event.target.closest("button");
         if (!button) return;
@@ -1504,10 +1609,18 @@
           toggleFavorite(button.dataset.teamFavorite);
           return;
         }
+        if (button.hasAttribute("data-standings-detail")) {
+          standingsExpanded = !standingsExpanded;
+          const view = button.closest(".standings-view");
+          view.toggleAttribute("data-full", standingsExpanded);
+          button.setAttribute("aria-pressed", String(standingsExpanded));
+          if (!standingsExpanded) view.querySelector(".standings-scroll").scrollLeft = 0;
+          return;
+        }
         if (button.hasAttribute("data-schedule-view")) {
           scheduleView = button.dataset.scheduleView;
-          if (location.hash === "#jugadors" || location.hash === "#partits") {
-            history.replaceState(history.state, "", scheduleView === "roster" ? "#jugadors" : "#partits");
+          if (viewFromHash(location.hash)) {
+            history.replaceState(history.state, "", scheduleAnchors[scheduleView] || scheduleAnchors.round);
           }
         } else if (button.hasAttribute("data-fixture-filter")) {
           fixtureFilter = button.dataset.fixtureFilter;
