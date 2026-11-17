@@ -192,11 +192,6 @@ await Promise.all([
 ]);
 if (hasFullRounds) await generateLeaguePdfs(data, distRoot);
 else await copyPublishedLeaguePdfs(data, distRoot);
-// The PDFs need all league matches, but the page only uses the round selector and download links.
-for (const team of data.teams) {
-  if (!Array.isArray(team.league?.rounds)) continue;
-  team.league.rounds = team.league.rounds.map(({ number, date, progress, pdfUrls }) => ({ number, date, progress, pdfUrls }));
-}
 await Promise.all([
   writeFile(resolve(distRoot, "index.html"), page, "utf8"),
   writeFile(resolve(distRoot, "api/data.json"), `${JSON.stringify(data)}\n`, "utf8"),
