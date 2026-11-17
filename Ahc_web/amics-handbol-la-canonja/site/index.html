@@ -508,8 +508,8 @@
     .standings-team { display: flex; min-width: 0; align-items: center; gap: 8px; line-height: 1.3; }
     .standings-team-name { min-width: 0; overflow-wrap: anywhere; }
     .standings-movement { display: inline-block; margin-inline-start: 5px; font-size: 10px; font-weight: 750; white-space: nowrap; }
-    .standings-badge { display: grid; width: 28px; height: 28px; flex: 0 0 28px; place-items: center; border-radius: 7px; background: #f0edf8; color: #534884; font-size: 10px; font-weight: 850; }
-    .standings-badge img { display: block; width: 25px; height: 25px; }
+    .standings-badge { position: relative; display: grid; width: 30px; height: 30px; flex: 0 0 30px; place-items: center; overflow: hidden; border-radius: 7px; background: #f0edf8; color: #534884; font-size: 10px; font-weight: 850; }
+    .standings-badge img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; padding: 2px; background: #fff; object-fit: contain; }
     .standings-table [data-difference="positive"] { color: #216651; font-weight: 750; }
     .standings-table [data-difference="negative"] { color: #922e4a; font-weight: 750; }
     .standings-unavailable { margin: 0; padding: 16px; border: 1px dashed rgba(25,24,54,.2); border-radius: 12px; color: var(--muted); font-size: 12px; line-height: 1.6; }
@@ -599,12 +599,10 @@
       .standings-table .standings-rank-chip, .standings-table .standings-points { min-width: 24px; min-height: 24px; padding-inline: 4px; }
       .standings-view:not([data-full]) .standings-table { min-width: 0; }
       .standings-view:not([data-full]) .standings-extra { display: none; }
-      .standings-badge { width: 21px; height: 21px; flex-basis: 21px; font-size: 8px; }
-      .standings-badge img { width: 18px; height: 18px; }
+      .standings-badge { width: 22px; height: 22px; flex-basis: 22px; font-size: 8px; }
     }
     @media (max-width: 380px) {
       .standings-table .standings-team { gap: 5px; }
-      .standings-table tr:not(.is-club) .standings-badge { display: none; }
     }
   </style>
 </head>
@@ -1200,6 +1198,24 @@
           '</dl>' + recordBar + '</div></div>';
       }
 
+      function officialCrestUrl(value) {
+        if (!value) return "";
+        try {
+          const url = new URL(value);
+          if (url.origin === "https://balonmano.isquad.es" && !url.username && !url.password &&
+            /^\/images\/afiliacion_clubs\/\d+\/[^/]+\.(?:jpe?g|png|webp|gif|svg)$/i.test(url.pathname) &&
+            !/\/sinescudo\./i.test(url.pathname)) return url.href;
+        } catch {}
+        return "";
+      }
+
+      function standingsBadge(name, url) {
+        const image = url
+          ? '<img src="' + escapeHtml(url) + '" width="30" height="30" loading="lazy" decoding="async" alt="" onerror="this.remove()">'
+          : "";
+        return '<span class="standings-badge" aria-hidden="true">' + escapeHtml(competitionInitials(name)) + image + '</span>';
+      }
+
       function renderStandings(team) {
         const ca = language === "ca";
         const labels = teamWords();
@@ -1222,11 +1238,21 @@
         ];
         const headings = columns.map(([, short, label, extra]) => '<th scope="col"' + (extra ? ' class="standings-extra"' : '') +
           ' aria-label="' + escapeHtml(label) + '" title="' + escapeHtml(label) + '">' + escapeHtml(short) + '</th>').join("");
-        const knownNames = new Set([
-          team.clubLabel,
-          ...[...(team.fixtures || []), ...(team.league?.rounds || []).flatMap((round) => round.fixtures || [])]
-            .flatMap((fixture) => [fixture.homeName, fixture.awayName]),
-        ].filter(Boolean).map(normalizePlayerName));
+        const knownNames = new Set([normalizePlayerName(team.clubLabel)]);
+        const fixtureBadges = new Map();
+        const fixtures = [...(team.fixtures || []), ...(team.league?.rounds || []).flatMap((round) => round.fixtures || [])];
+        for (const fixture of fixtures) {
+          for (const [name, url] of [[fixture.homeName, fixture.homeBadgeUrl], [fixture.awayName, fixture.awayBadgeUrl]]) {
+            const key = normalizePlayerName(name);
+            if (!key) continue;
+            knownNames.add(key);
+            const crest = officialCrestUrl(url);
+            if (!crest) continue;
+            if (!fixtureBadges.has(key)) fixtureBadges.set(key, crest);
+            // Conflicting crests for a name cannot identify a club reliably.
+            else if (fixtureBadges.get(key) !== crest) fixtureBadges.set(key, "");
+          }
+        }
         const rows = standings.map((entry) => {
           const cells = columns.map(([key, , , extra]) => {
             const value = entry[key];
@@ -1240,18 +1266,18 @@
           const prefix = String(entry.name ?? "").match(/^([+-]?\d+)\s+(.+)$/);
           const movement = prefix && knownNames.has(normalizePlayerName(prefix[2])) && !knownNames.has(normalizePlayerName(entry.name))
             ? Number(prefix[1]) : 0;
-          const name = competitionName(movement ? prefix[2] : entry.name);
+          const teamName = movement ? prefix[2] : entry.name;
+          const name = competitionName(teamName);
           const places = Math.abs(movement);
           const change = movement ? '<span class="standings-movement" data-difference="' + (movement > 0 ? "positive" : "negative") +
             '" role="img" aria-label="' + (movement > 0 ? (ca ? "Puja " : "Sube ") : (ca ? "Baixa " : "Baja ")) + places +
             (places === 1 ? (ca ? " posició" : " posición") : (ca ? " posicions" : " posiciones")) + '">' +
             (movement > 0 ? "↑" : "↓") + places + '</span>' : "";
-          const crest = entry.isClub
-            ? '<img src="./images/escut-128.png" width="25" height="25" loading="lazy" alt="">'
-            : escapeHtml(competitionInitials(name));
+          const crestUrl = entry.isClub ? "./images/escut-128.png"
+            : officialCrestUrl(entry.badgeUrl) || fixtureBadges.get(normalizePlayerName(teamName));
           return '<tr' + (entry.isClub ? ' class="is-club" aria-current="true"' : '') + (entry.position === 1 ? ' data-leader' : '') +
             '><td><span class="standings-rank-chip">' + escapeHtml(standingValue(entry.position)) + '</span></td><th scope="row"><div class="standings-team">' +
-            '<span class="standings-badge" aria-hidden="true">' + crest + '</span><span class="standings-team-name">' + escapeHtml(name) + change +
+            standingsBadge(name, crestUrl) + '<span class="standings-team-name">' + escapeHtml(name) + change +
             '</span></div></th>' + cells + '</tr>';
         }).join("");
         const clubStanding = standings.find((entry) => entry.isClub);
