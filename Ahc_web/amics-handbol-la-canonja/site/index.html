@@ -336,18 +336,18 @@
     .roster-source a { color: var(--blue); text-underline-offset: 4px; }
     .roster-grid, .staff-grid { display: grid; gap: 11px; margin: 0; padding: 0; list-style: none; }
     .roster-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-    .roster-player { --card-art: #e7e1ff; --card-ink: #302477; position: relative; display: grid; min-width: 0; grid-template-rows: auto 1fr; overflow: hidden; border: 1px solid #e1dbea; border-radius: 13px; background: var(--white); }
-    .roster-player:nth-child(3n + 2) { --card-art: #e3e7fa; --card-ink: #283579; }
-    .roster-player:nth-child(3n + 3) { --card-art: #ebe4f5; --card-ink: #4a316c; }
-    .roster-player-mark { position: relative; isolation: isolate; display: flex; min-height: clamp(52px, 7vw, 74px); align-items: center; overflow: hidden; padding: 8px clamp(11px, 2vw, 19px); background: linear-gradient(145deg, var(--card-art), #faf8ff); color: var(--card-ink); font-size: clamp(34px, 4.8vw, 53px); font-weight: 880; letter-spacing: -.095em; line-height: 1; }
-    .roster-player-mark::after { position: absolute; z-index: -1; top: -100%; right: 12%; width: 34%; height: 280%; transform: rotate(28deg); border-inline: 1px solid rgba(76,50,150,.14); background: repeating-linear-gradient(90deg, transparent 0 6px, rgba(76,50,150,.055) 6px 7px); content: ""; }
+    .roster-player { --card-art: #e7e1ff; display: grid; min-width: 0; grid-template-rows: auto 1fr; overflow: hidden; border: 1px solid #e1dbea; border-radius: 13px; background: var(--white); }
+    .roster-player:nth-child(3n + 2) { --card-art: #e3e7fa; }
+    .roster-player:nth-child(3n + 3) { --card-art: #ebe4f5; }
+    .roster-player-media { position: relative; display: grid; aspect-ratio: 1; overflow: hidden; place-items: center; background: linear-gradient(145deg, var(--card-art), #faf8ff); }
+    .roster-player-media::before { width: 35%; aspect-ratio: 1; border-radius: 50%; background: url("./images/escut-128.png") center / contain no-repeat; opacity: .48; content: ""; }
+    .roster-player-photo { position: absolute; inset: 0; display: block; width: 100%; height: 100%; background: #f2eef7; object-fit: cover; object-position: center 33%; }
     .roster-player-copy { display: grid; min-width: 0; align-content: start; gap: 4px; padding: 12px clamp(9px, 1.65vw, 17px) 14px; }
     .roster-player-name { font-size: clamp(13px, 1.42vw, 17px); font-weight: 800; line-height: 1.22; overflow-wrap: anywhere; }
-    .roster-group.is-guests .roster-player { --card-art: #eee7dd; --card-ink: #5d4958; }
-    .roster-group.is-guests .roster-player-mark { min-height: clamp(51px, 6.8vw, 73px); font-size: clamp(30px, 4.2vw, 48px); }
+    .roster-group.is-guests .roster-player { --card-art: #eee7dd; }
     .player-goals { color: var(--blue); font-size: 11px; font-weight: 750; line-height: 1.3; }
     .roster-player.is-top-scorer { border-color: #a89be3; }
-    .roster-player.is-top-scorer .roster-player-mark { background: linear-gradient(135deg, #272668, #4438a7); color: white; }
+    .roster-player.is-top-scorer .roster-player-copy { box-shadow: inset 3px 0 var(--blue); }
     .staff-section { margin-top: clamp(23px, 4vw, 37px); padding: clamp(14px, 2.5vw, 23px); border: 1px solid #e5e0f0; border-radius: 13px; background: #f6f4fb; }
     .staff-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 175px), 1fr)); }
     .staff-member { display: grid; min-width: 0; align-content: start; gap: 4px; padding: 10px 10px 10px 12px; border-inline-start: 2px solid #b3a7e6; }
@@ -759,6 +759,7 @@
       const htmlNodes = [...document.querySelectorAll("[data-ca-html][data-es-html]")];
       const labelNodes = [...document.querySelectorAll("[data-ca-label][data-es-label]")];
       const tabsNode = document.getElementById("team-tabs");
+      const playerPortraits = {};
       const teamsSeason = document.getElementById("teams-season");
       const teamFilterButtons = [...document.querySelectorAll("[data-team-filter]")];
       const favoriteCountNode = document.getElementById("team-favorite-count");
@@ -1452,20 +1453,24 @@
           .filter(({ goals }) => Number.isSafeInteger(goals) && goals > 0)
           .map(({ name, goals }) => [normalizePlayerName(name), goals]));
         const topGoals = Math.max(0, ...goalsByPlayer.values());
+        const portraits = playerPortraits[team.key] || {};
         const displayName = (name) => name === name.toLocaleUpperCase(language)
           ? name.toLocaleLowerCase(language)
             .replace(/(^|[\s'’\-])\p{L}/gu, (part) => part.toLocaleUpperCase(language))
             .replace(/\b(De|Del|Dels|La|Las|Les|Los|I|Y)\b/g, (part, _, position) => position === 0 ? part : part.toLocaleLowerCase(language))
           : name;
         const playerCard = (name) => {
-          const initials = name.match(/(?:^|\s)\p{L}/gu) || [];
-          const monogram = (initials.length > 1 ? initials[0] + initials.at(-1) : initials[0] || "").replace(/\s/g, "").toLocaleUpperCase(language);
-          const goals = goalsByPlayer.get(normalizePlayerName(name));
+          const playerKey = normalizePlayerName(name);
+          const portraitFile = Object.hasOwn(portraits, playerKey) ? portraits[playerKey] : "";
+          const photo = portraitFile
+            ? '<img class="roster-player-photo" src="./images/portraits/' + escapeHtml(portraitFile) + '" alt="" loading="lazy" decoding="async" onerror="this.remove()">'
+            : "";
+          const goals = goalsByPlayer.get(playerKey);
           const isTopScorer = goals === topGoals;
           const goalsLabel = goals === 1 ? "gol" : (ca ? "gols" : "goles");
           const playerGoals = goals ? '<small class="player-goals">' + goals + ' ' + goalsLabel + '</small>' : "";
-          return '<li class="roster-player' + (isTopScorer ? ' is-top-scorer' : '') + '"><span class="roster-player-mark" aria-hidden="true">' + escapeHtml(monogram) +
-            '</span><div class="roster-player-copy"><strong class="roster-player-name">' + escapeHtml(displayName(name)) + '</strong>' + playerGoals + '</div></li>';
+          return '<li class="roster-player' + (isTopScorer ? ' is-top-scorer' : '') + '"><div class="roster-player-media" aria-hidden="true">' + photo +
+            '</div><div class="roster-player-copy"><strong class="roster-player-name">' + escapeHtml(displayName(name)) + '</strong>' + playerGoals + '</div></li>';
         };
         const groupHeading = (title, total) => '<div class="roster-group-heading"><h5 class="roster-subheading">' + title +
           '</h5><span class="roster-group-total">' + total + '</span></div>';

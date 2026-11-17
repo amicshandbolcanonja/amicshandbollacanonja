@@ -2,7 +2,7 @@ import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import worker, { TEAM_CONFIG } from "../worker/index.js";
-import { readSiteImages } from "./site-images.mjs";
+import { embedPlayerPortraits, readSiteAssets } from "./site-images.mjs";
 import { generateLeaguePdfs } from "./league-pdfs.mjs";
 import { copyPublishedLeaguePdfs, loadPublishedCalendar, loadPublishedInstagramPost, loadPublishedLeagueDetails, validateCalendarSnapshot } from "./published-snapshot.mjs";
 import { makeLeagueDetails, readBootstrapLeagueDetails, updateFromPrintableCalendars } from "./isquad-export-sync.mjs";
@@ -120,9 +120,9 @@ async function fetchLatestInstagramPost() {
   }
 }
 
-const [sourcePage, siteImages] = await Promise.all([
+const [sourcePage, { siteImages, playerPortraits }] = await Promise.all([
   readFile(resolve(projectRoot, "site/index.html"), "utf8"),
-  readSiteImages(projectRoot),
+  readSiteAssets(projectRoot),
 ]);
 function replaceOnce(source, from, to) {
   const first = source.indexOf(from);
@@ -136,7 +136,7 @@ const pageWithRelativeImages = sourcePage.replace(
   /\b(src|srcset)="([^"]*)"/g,
   (_, attribute, value) => `${attribute}="${value.replace(/(^|,\s*)\/images\//g, "$1./images/")}"`,
 );
-const page = replaceOnce(pageWithRelativeImages, '"/api/data"', '"./api/data.json"');
+const page = embedPlayerPortraits(replaceOnce(pageWithRelativeImages, '"/api/data"', '"./api/data.json"'), playerPortraits);
 
 const event = process.env.GITHUB_EVENT_NAME;
 const allowPublishedFallback = event === "push" || event === "workflow_dispatch" ||
@@ -186,9 +186,10 @@ if (!instagramSnapshot.post.permalink) {
 }
 
 await rm(distRoot, { recursive: true, force: true });
+const imageDirectories = new Set(siteImages.map(({ file }) => dirname(file)));
 await Promise.all([
   mkdir(resolve(distRoot, "api"), { recursive: true }),
-  mkdir(resolve(distRoot, "images"), { recursive: true }),
+  ...Array.from(imageDirectories, (directory) => mkdir(resolve(distRoot, "images", directory), { recursive: true })),
 ]);
 if (hasFullRounds) await generateLeaguePdfs(data, distRoot);
 else await copyPublishedLeaguePdfs(data, distRoot);
