@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { parseLeagueCalendar } from "../worker/index.js";
 import { createLeagueRoundPdf, roundProgress } from "../scripts/league-pdfs.mjs";
+import { mergeTournament } from "../scripts/isquad-export-sync.mjs";
 import { PDFDocument } from "pdf-lib";
 
 const heading = (number, date = "18-10-2026") => `<tr class="second-table-info"><td><i-t>JORNADA</i-t> ${number} (${date})</td></tr>`;
@@ -44,6 +45,30 @@ test("an unconfirmed 0-0 is pending, while an explicit final 0-0 is complete", (
   assert.equal(round.fixtures[0].state, "pending");
   assert.equal(round.fixtures[1].state, "played");
   assert.equal(roundProgress(round).played, 1);
+});
+
+test("an official venue swap moves team identities and discards the previous venue and time", () => {
+  const previous = {
+    round: 10, homeId: "204225", homeName: "CHE-SANTS B", homeBadgeUrl: "sants.jpg",
+    awayId: "222242", awayName: "AMICS H.C.", awayBadgeUrl: "amics.jpg",
+    date: "2026-11-29", time: "18:30", venue: "Espanya Industrial",
+    state: "pending", homeScore: "", awayScore: "", actaUrl: "",
+  };
+  const team = {
+    key: "senior-femeni", clubLabel: "AMICS H.C.", standings: [],
+    fixtures: [previous], league: { rounds: [{ number: 10, fixtures: [previous] }] },
+  };
+  const official = { rounds: [{ number: 10, byes: [], fixtures: [
+    { homeName: "AMICS H.C.", awayName: "CHE-SANTS B", homeScore: "", awayScore: "" },
+  ] }] };
+  const updated = mergeTournament(team, official);
+  assert.deepEqual(updated.fixtures, [{
+    ...previous,
+    homeId: "222242", homeName: "AMICS H.C.", homeBadgeUrl: "amics.jpg",
+    awayId: "204225", awayName: "CHE-SANTS B", awayBadgeUrl: "sants.jpg",
+    date: "", time: "", venue: "",
+  }]);
+  assert.deepEqual(updated.league.rounds[0].fixtures, updated.fixtures);
 });
 
 test("PDF generation paginates long names and records the publication time", async () => {

@@ -309,26 +309,7 @@
     .team-directory-link { display: inline-flex; min-height: 44px; flex: 0 0 auto; align-items: center; gap: 7px; padding: 0 12px; border: 1px solid rgba(255,255,255,.2); border-radius: 9px; color: var(--lilac); font-size: 12px; font-weight: 750; text-decoration: none; }
     .team-directory-link:hover { background: rgba(255,255,255,.08); color: var(--white); }
     .team-directory-link:focus-visible { outline-color: var(--lilac); }
-    .calendar-controls { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin: 0 0 16px; }
-    .league-pdf-menu { position: relative; margin-left: auto; flex: 0 0 auto; }
-    .league-pdf-toggle { display: flex; min-height: 44px; align-items: center; gap: 7px; padding: 7px 11px; border: 1px solid transparent; border-radius: 99px; color: var(--muted); font-size: 12px; font-weight: 750; cursor: pointer; list-style: none; }
-    .league-pdf-toggle::-webkit-details-marker { display: none; }
-    .league-pdf-toggle:hover, .league-pdf-menu[open] .league-pdf-toggle { border-color: var(--line); background: #f8f7ff; color: var(--ink); }
-    .league-pdf-toggle:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
-    .league-pdf-toggle svg { width: 15px; height: 15px; flex: 0 0 auto; }
-    .league-pdf-toggle small { font-size: 10px; font-weight: 700; letter-spacing: .04em; }
-    .league-pdf-chevron { transition: transform .15s; }
-    .league-pdf-menu[open] .league-pdf-chevron { transform: rotate(180deg); }
-    .league-pdf-popover { position: absolute; z-index: 5; top: calc(100% + 8px); right: 0; width: 340px; max-width: calc(100vw - 48px); padding: 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); box-shadow: 0 10px 32px rgba(25,24,53,.1); }
-    .league-pdf-description { margin: 0 0 14px; color: var(--ink); font-size: 12px; font-weight: 750; line-height: 1.6; }
-    .league-pdf-download { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; gap: 9px; padding: 9px 14px; border-radius: 8px; background: var(--blue); color: #fff; font-size: 12px; font-weight: 800; text-decoration: none; }
-    .league-pdf-download:hover { background: #24298c; }
-    .league-pdf-hint { margin: 10px 0 0; color: var(--muted); font-size: 11px; line-height: 1.6; }
-    .league-pdf-hint a { color: var(--blue); text-underline-offset: 3px; }
-    @media (max-width: 650px) {
-      .league-pdf-menu { position: static; }
-      .league-pdf-popover { width: 100%; max-width: none; }
-    }
+    .calendar-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin: 0 0 16px; }
     .team-panels { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
     .roster-hero { position: relative; isolation: isolate; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; overflow: hidden; margin-bottom: clamp(20px, 3vw, 29px); padding: clamp(17px, 3vw, 30px); border-radius: 16px; background: linear-gradient(120deg, #201d46 18%, #302d79 68%, #443a9c); color: #fff; }
     .roster-hero::before, .roster-hero::after { position: absolute; z-index: -1; right: -80px; top: 50%; width: clamp(240px, 45vw, 575px); aspect-ratio: 1; transform: translateY(-50%) rotate(-17deg); border: 1px solid rgba(232,225,255,.27); border-radius: 50%; content: ""; }
@@ -1421,7 +1402,7 @@
         return [...rounds.values()].sort((a, b) => a.number - b.number);
       }
 
-      function renderRoundControls(team, rounds, round, currentRound) {
+      function renderRoundControls(rounds, round, currentRound) {
         const ca = language === "ca";
         const index = rounds.indexOf(round);
         const arrow = (direction, label, disabled) => '<button class="round-control" type="button" data-round-direction="' + direction + '" aria-label="' + label + '"' + (disabled ? " disabled" : "") + '><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="' + (direction < 0 ? "m12.5 4.5-5.5 5.5 5.5 5.5" : "m7.5 4.5 5.5 5.5-5.5 5.5") + '" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>';
@@ -1431,7 +1412,7 @@
           '<select class="round-select" data-round-select aria-label="' + (ca ? "Tria una jornada" : "Elige una jornada") + '">' + options + '</select>' +
           arrow(1, ca ? "Jornada següent" : "Jornada siguiente", index === rounds.length - 1) + '</div>' +
           (round.number === currentRound ? "" : '<button class="round-reset" type="button" data-round-reset>' + (ca ? "Torna a l’actual" : "Volver a la actual") + '</button>') +
-          renderLeagueDownloads(team, round) + '</div>';
+          '</div>';
       }
 
       function renderMatchday(team) {
@@ -1505,7 +1486,7 @@
             (ca ? "Descans" : "Descanso") + ' · ' + escapeHtml(otherByes.join(", ")) + '</p>' : "";
           groupContent = '<div class="league-heading">' + groupHeading + filterButtons + '</div>' + groupedCards + noMatches + byeNote;
         }
-        return renderRoundControls(team, rounds, round, current) +
+        return renderRoundControls(rounds, round, current) +
           '<div class="round-title"><h4>Jornada ' + escapeHtml(round.number) + '</h4>' + (context ? '<p>' + escapeHtml(context) + '</p>' : "") + '</div>' +
           clubContent + (groupContent ? '<section class="league-matches">' + groupContent + '</section>' : "");
       }
@@ -1647,7 +1628,7 @@
         const stateAttribute = ["data-round-direction", "data-fixture-filter", "data-schedule-view"]
           .find((attribute) => element.hasAttribute(attribute));
         if (stateAttribute) return '[' + stateAttribute + '="' + CSS.escape(element.getAttribute(stateAttribute)) + '"]:not(:disabled)';
-        const stableControl = ["[data-round-select]", "[data-team-favorite]", "[data-standings-detail]", ".league-pdf-download", ".league-pdf-menu summary", ".standings-scroll"]
+        const stableControl = ["[data-round-select]", "[data-team-favorite]", "[data-standings-detail]", ".standings-scroll"]
           .find((selector) => element.matches(selector));
         if (stableControl) return stableControl;
         if (element.matches("a[href]")) {
@@ -1665,7 +1646,6 @@
         const previousPanel = panelsNode.querySelector(".schedule-panel");
         const focusedElement = previousPanel?.contains(document.activeElement) ? document.activeElement : null;
         const focusSelector = focusedElement && selectorForPanelFocus(focusedElement);
-        const pdfOpen = !!previousPanel?.querySelector(".league-pdf-menu[open]");
         const tableScroll = previousPanel?.querySelector(".standings-scroll")?.scrollLeft || 0;
         const views = [
           ["round", "Jornada", renderMatchday], ["roster", language === "ca" ? "Jugadors" : "Jugadores", renderRoster],
@@ -1686,8 +1666,6 @@
 
         const activePanel = panelsNode.querySelector(".schedule-panel");
         if (activePanel.id !== previousPanel?.id) return;
-        const pdfMenu = activePanel.querySelector(".league-pdf-menu");
-        if (pdfOpen && pdfMenu) pdfMenu.open = true;
         const table = activePanel.querySelector(".standings-scroll");
         if (table && tableScroll) table.scrollLeft = tableScroll;
         if (focusedElement) {
@@ -1734,21 +1712,6 @@
           .sort((first, second) => fixtureScheduleKey(second).localeCompare(fixtureScheduleKey(first)) || second.round - first.round)[0];
         const unscheduled = fixtures.find((fixture) => fixture.state === "pending" && !parseFixtureDate(fixture.date));
         return lastPlayed?.round ?? unscheduled?.round ?? rounds[0].number;
-      }
-
-      function renderLeagueDownloads(team, round) {
-        const ca = language === "ca";
-        const sourceUrl = team.league?.printableUrl || team.league?.sourceUrl || team.teamUrl || "";
-        const sourceLink = sourceUrl ? '<a href="' + escapeHtml(sourceUrl) + '" target="_blank" rel="noopener noreferrer">' + (ca ? "Calendari oficial" : "Calendario oficial") + ' ↗</a>' : "";
-        const menuStart = '<details class="league-pdf-menu" name="league-download"><summary class="league-pdf-toggle"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 3v8m0 0 3-3m-3 3L7 8m-3.5 5v1.5A1.5 1.5 0 0 0 5 16h10a1.5 1.5 0 0 0 1.5-1.5V13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>' + (ca ? "Desa la jornada" : "Guardar jornada") + '</span><small>PDF</small><svg class="league-pdf-chevron" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m6 8 4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><div class="league-pdf-popover">';
-        const url = round.pdfUrls?.[language];
-        if (!url) {
-          return menuStart + '<p class="league-pdf-description">' + (ca ? "El PDF de la lliga encara no està disponible." : "El PDF de la liga todavía no está disponible.") + '</p><p class="league-pdf-hint">' + sourceLink + '</p></div></details>';
-        }
-        return menuStart +
-          '<p class="league-pdf-description">Jornada ' + escapeHtml(round.number) + ' · ' + (ca ? "Tots els clubs del grup" : "Todos los clubes del grupo") + '</p>' +
-          '<a class="league-pdf-download" href="' + escapeHtml(url + '?v=' + encodeURIComponent(siteData.generatedAt)) + '" download="' + escapeHtml(team.key + '-jornada-' + round.number + '-' + language + '.pdf') + '">' + (ca ? 'Descarrega el PDF' : 'Descarga el PDF') + '</a>' +
-          '<p class="league-pdf-hint">' + sourceLink + '</p></div></details>';
       }
 
       function renderData() {
@@ -1890,23 +1853,10 @@
         syncScheduleUrl();
         announceRound();
       });
-      document.addEventListener("click", (event) => {
-        panelsNode.querySelectorAll(".league-pdf-menu[open]").forEach((menu) => {
-          if (!menu.contains(event.target)) menu.open = false;
-        });
-      }, true);
       document.addEventListener("keydown", (event) => {
-        if (event.key !== "Escape") return;
-        if (siteNav.classList.contains("is-open")) {
-          event.preventDefault();
-          setMobileMenu(false, true);
-          return;
-        }
-        panelsNode.querySelectorAll(".league-pdf-menu[open]").forEach((menu) => {
-          const hadFocus = menu.contains(document.activeElement);
-          menu.open = false;
-          if (hadFocus) menu.querySelector("summary")?.focus({ preventScroll: true });
-        });
+        if (event.key !== "Escape" || !siteNav.classList.contains("is-open")) return;
+        event.preventDefault();
+        setMobileMenu(false, true);
       });
       menuButton.addEventListener("click", () => {
         const isOpen = siteNav.classList.contains("is-open");

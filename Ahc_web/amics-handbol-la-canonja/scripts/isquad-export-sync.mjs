@@ -26,7 +26,15 @@ function oneMatch(matches, fixture, context) {
   return found[0];
 }
 
-function mergeTournament(team, printable, supplemental, sourceUrl) {
+function previousFixture(matches, fixture, context) {
+  return oneMatch(matches, fixture, context) || oneMatch(
+    matches.filter((match) => !wasPlayed(match)),
+    { homeName: fixture.awayName, awayName: fixture.homeName },
+    context,
+  );
+}
+
+export function mergeTournament(team, printable, supplemental, sourceUrl) {
   const previousRounds = new Map(team.league.rounds.map((round) => [round.number, round]));
   if (printable.rounds.length !== previousRounds.size) throw new Error(`Round count changed for ${team.key}`);
   const clubNames = [team.clubLabel, ...team.standings.filter((entry) => entry.isClub).map((entry) => entry.name)];
@@ -51,32 +59,35 @@ function mergeTournament(team, printable, supplemental, sourceUrl) {
     const participants = new Set();
     const fixtures = round.fixtures.map((match) => {
       const isClub = isClubName(match.homeName) || isClubName(match.awayName);
-      const oldClub = oneMatch(oldClubFixtures, match, context);
+      const oldClub = previousFixture(oldClubFixtures, match, context);
       if (isClub && !oldClub) throw new Error(`Club fixture could not be matched in ${context}`);
       if (oldClub && seenClubFixtures.has(oldClub)) throw new Error(`Repeated club fixture in ${context}`);
       if (oldClub) seenClubFixtures.add(oldClub);
-      const oldMatch = oldClub || oneMatch(before.fixtures || [], match, context);
-      const details = oldMatch || oneMatch(supplemental?.[round.number] || [], match, context);
-      // The export has no hours, venues, actas or explicit postponement flag.
-      // Keep previously confirmed details only for the same round and pairing.
+      const oldMatch = oldClub || previousFixture(before.fixtures || [], match, context);
+      const switchedSides = oldMatch && !sameMatch(match, oldMatch);
+      const sameVenueMatch = switchedSides ? null : oldMatch;
+      // Fixture details depend on who hosts. Club identities and crests follow each side.
+      const details = sameVenueMatch || oneMatch(supplemental?.[round.number] || [], match, context);
       // Without an explicit final status, a printed 0–0 can be a placeholder.
       const hasExportScore = hasResult(match) && Number(match.homeScore) + Number(match.awayScore) > 0;
-      const result = hasExportScore ? match : oldMatch && wasPlayed(oldMatch) ? oldMatch : null;
+      const result = hasExportScore ? match : sameVenueMatch && wasPlayed(sameVenueMatch) ? sameVenueMatch : null;
       const merged = {
         ...oldMatch,
-        homeId: oldMatch?.homeId || nameKey(match.homeName),
-        awayId: oldMatch?.awayId || nameKey(match.awayName),
-        homeName: details?.homeName || displayName(match.homeName),
-        awayName: details?.awayName || displayName(match.awayName),
+        homeId: (switchedSides ? oldMatch.awayId : oldMatch?.homeId) || nameKey(match.homeName),
+        awayId: (switchedSides ? oldMatch.homeId : oldMatch?.awayId) || nameKey(match.awayName),
+        homeBadgeUrl: switchedSides ? oldMatch.awayBadgeUrl : oldMatch?.homeBadgeUrl,
+        awayBadgeUrl: switchedSides ? oldMatch.homeBadgeUrl : oldMatch?.awayBadgeUrl,
+        homeName: details?.homeName || (switchedSides ? oldMatch.awayName : displayName(match.homeName)),
+        awayName: details?.awayName || (switchedSides ? oldMatch.homeName : displayName(match.awayName)),
         date: details?.date || "",
         time: details?.time || "",
         venue: details?.venue || "",
         round: round.number,
         homeScore: result ? String(result.homeScore) : "",
         awayScore: result ? String(result.awayScore) : "",
-        state: result ? "played" : oldMatch?.state === "suspended" ? "suspended" : "pending",
-        actaUrl: result && oldMatch && String(result.homeScore) === String(oldMatch.homeScore) &&
-          String(result.awayScore) === String(oldMatch.awayScore) ? oldMatch.actaUrl || "" : "",
+        state: result ? "played" : sameVenueMatch?.state === "suspended" ? "suspended" : "pending",
+        actaUrl: result && sameVenueMatch && String(result.homeScore) === String(sameVenueMatch.homeScore) &&
+          String(result.awayScore) === String(sameVenueMatch.awayScore) ? sameVenueMatch.actaUrl || "" : "",
       };
       for (const name of [merged.homeName, merged.awayName]) {
         const key = nameKey(name);
